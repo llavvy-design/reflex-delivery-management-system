@@ -7,7 +7,8 @@ const {
     getDeliveries,
     getDeliveryById,
     assignDelivery,
-    updateDeliveryStatus
+    updateDeliveryStatus,
+    getDeliveryHistory
 } = require("../controllers/deliveryController");
 
 const router = express.Router();
@@ -21,5 +22,7 @@ router.get("/:id", authenticateToken, getDeliveryById);
 router.post("/:id/assign", authenticateToken, assignDelivery);
 
 router.patch("/:id/status", authenticateToken, updateDeliveryStatus);
+
+router.get("/:id/history", authenticateToken, getDeliveryHistory);
 
 module.exports = router;

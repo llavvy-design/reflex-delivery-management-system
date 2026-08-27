@@ -3,7 +3,8 @@ const {
     getDeliveries: fetchDeliveries,
     getDeliveryById: fetchDeliveryById,
     assignDelivery: assignDeliveryToRider,
-    updateDeliveryStatus: changeDeliveryStatus
+    updateDeliveryStatus: changeDeliveryStatus,
+    getDeliveryHistory: fetchDeliveryHistory
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
@@ -192,10 +193,41 @@ const updateDeliveryStatus = async (req, res) => {
     }
 };
 
+const getDeliveryHistory = async (req, res) => {
+    try {
+        const history = await fetchDeliveryHistory({
+            deliveryId: req.params.id,
+            userId: req.user.userId,
+            role: req.user.role
+        });
+
+        if (history === null) {
+            return res.status(404).json({
+                status: "error",
+                message: "Delivery not found"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            message: "Delivery history retrieved successfully",
+            history
+        });
+    } catch (error) {
+        console.error("Delivery history retrieval failed:", error.message);
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to retrieve delivery history"
+        });
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
     getDeliveryById,
     assignDelivery,
-    updateDeliveryStatus
+    updateDeliveryStatus,
+    getDeliveryHistory
 };

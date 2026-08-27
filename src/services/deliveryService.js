@@ -334,10 +334,47 @@ const updateDeliveryStatus = async ({
     }
 };
 
+const getDeliveryHistory = async ({
+    deliveryId,
+    userId,
+    role
+}) => {
+    const delivery = await getDeliveryById({
+        deliveryId,
+        userId,
+        role
+    });
+
+    if (!delivery) {
+        return null;
+    }
+
+    const result = await pool.query(
+        `SELECT
+            h.id,
+            h.delivery_id,
+            h.changed_by,
+            u.name AS changed_by_name,
+            u.role AS changed_by_role,
+            h.from_status,
+            h.to_status,
+            h.changed_at
+         FROM delivery_status_history h
+         JOIN users u
+           ON u.id = h.changed_by
+         WHERE h.delivery_id = $1
+         ORDER BY h.changed_at ASC, h.id ASC`,
+        [deliveryId]
+    );
+
+    return result.rows;
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
     getDeliveryById,
     assignDelivery,
-    updateDeliveryStatus
+    updateDeliveryStatus,
+    getDeliveryHistory
 };
