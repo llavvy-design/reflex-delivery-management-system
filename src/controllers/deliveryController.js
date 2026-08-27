@@ -1,7 +1,8 @@
 const {
     createDelivery: saveDelivery,
     getDeliveries: fetchDeliveries,
-    getDeliveryById: fetchDeliveryById
+    getDeliveryById: fetchDeliveryById,
+    assignDelivery: assignDeliveryToRider
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
@@ -81,8 +82,67 @@ const getDeliveryById = async (req, res) => {
     }
 };
 
+const assignDelivery = async (req, res) => {
+    try {
+        if (req.user.role !== "dispatcher") {
+            return res.status(403).json({
+                status: "error",
+                message: "Only dispatchers can assign deliveries"
+            });
+        }
+
+        const delivery = await assignDeliveryToRider({
+            deliveryId: req.params.id,
+            riderId: req.body.riderId,
+            dispatcherId: req.user.userId
+        });
+
+        res.status(200).json({
+            status: "ok",
+            message: "Delivery assigned successfully",
+            delivery
+        });
+    } catch (error) {
+        console.error("Delivery assignment failed:", error.message);
+
+        if (error.message === "Rider not found") {
+            return res.status(404).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (error.message === "Delivery not found") {
+            return res.status(404).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (error.message === "Delivery is already assigned") {
+            return res.status(409).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (error.message === "Delivery cannot be assigned in its current status") {
+            return res.status(409).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to assign delivery"
+        });
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
-    getDeliveryById
+    getDeliveryById,
+    assignDelivery
 };
