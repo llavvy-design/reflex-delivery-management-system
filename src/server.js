@@ -69,6 +69,10 @@ app.use("/api/deliveries", deliveryRoutes);
 
 app.use("/api/users", userRoutes);
 
-app.listen(PORT, () => {
-    console.log(`Reflex API running on port ${PORT}`);
-});
+module.exports = app;
+
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Reflex API running on port ${PORT}`);
+    });
+}

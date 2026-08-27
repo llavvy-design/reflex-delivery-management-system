@@ -370,11 +370,46 @@ const getDeliveryHistory = async ({
     return result.rows;
 };
 
+const getDeliveryStats = async () => {
+    const result = await pool.query(
+        `SELECT
+            COUNT(*)::int AS total,
+            COUNT(*) FILTER (
+                WHERE status = 'Pending'
+            )::int AS pending,
+            COUNT(*) FILTER (
+                WHERE status = 'Assigned'
+            )::int AS assigned,
+            COUNT(*) FILTER (
+                WHERE status = 'Picked Up'
+            )::int AS picked_up,
+            COUNT(*) FILTER (
+                WHERE status = 'Delivered'
+            )::int AS delivered,
+            COUNT(*) FILTER (
+                WHERE assigned_rider_id IS NULL
+            )::int AS unassigned
+         FROM deliveries`
+    );
+
+    const row = result.rows[0];
+
+    return {
+        total: row.total,
+        pending: row.pending,
+        assigned: row.assigned,
+        pickedUp: row.picked_up,
+        delivered: row.delivered,
+        unassigned: row.unassigned
+    };
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
     getDeliveryById,
     assignDelivery,
     updateDeliveryStatus,
-    getDeliveryHistory
+    getDeliveryHistory,
+    getDeliveryStats
 };

@@ -8,7 +8,8 @@ const {
     getDeliveryById,
     assignDelivery,
     updateDeliveryStatus,
-    getDeliveryHistory
+    getDeliveryHistory,
+    getDeliveryStats
 } = require("../controllers/deliveryController");
 
 const router = express.Router();
@@ -16,6 +17,8 @@ const router = express.Router();
 router.post("/", authenticateToken, createDelivery);
 
 router.get("/", authenticateToken, getDeliveries);
+
+router.get("/stats", authenticateToken, getDeliveryStats);
 
 router.get("/:id", authenticateToken, getDeliveryById);
 

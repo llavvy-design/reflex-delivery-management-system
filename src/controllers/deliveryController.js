@@ -4,17 +4,69 @@ const {
     getDeliveryById: fetchDeliveryById,
     assignDelivery: assignDeliveryToRider,
     updateDeliveryStatus: changeDeliveryStatus,
-    getDeliveryHistory: fetchDeliveryHistory
+    getDeliveryHistory: fetchDeliveryHistory,
+    getDeliveryStats: fetchDeliveryStats
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
     try {
+        const {
+            customerName,
+            customerPhone,
+            deliveryAddress,
+            itemDescription
+        } = req.body;
+
+        const requiredFields = {
+            customerName,
+            customerPhone,
+            deliveryAddress,
+            itemDescription
+        };
+
+        for (const [field, value] of Object.entries(requiredFields)) {
+            if (typeof value !== "string" || value.trim() === "") {
+                return res.status(400).json({
+                    status: "error",
+                    message: `${field} is required`
+                });
+            }
+        }
+
+        if (customerName.trim().length > 100) {
+            return res.status(400).json({
+                status: "error",
+                message: "Customer name must not exceed 100 characters"
+            });
+        }
+
+        if (customerPhone.trim().length > 20) {
+            return res.status(400).json({
+                status: "error",
+                message: "Customer phone must not exceed 20 characters"
+            });
+        }
+
+        if (deliveryAddress.trim().length > 5000) {
+            return res.status(400).json({
+                status: "error",
+                message: "Delivery address is too long"
+            });
+        }
+
+        if (itemDescription.trim().length > 5000) {
+            return res.status(400).json({
+                status: "error",
+                message: "Item description is too long"
+            });
+        }
+
         const delivery = await saveDelivery({
             createdBy: req.user.userId,
-            customerName: req.body.customerName,
-            customerPhone: req.body.customerPhone,
-            deliveryAddress: req.body.deliveryAddress,
-            itemDescription: req.body.itemDescription
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            deliveryAddress: deliveryAddress.trim(),
+            itemDescription: itemDescription.trim()
         });
 
         res.status(201).json({
@@ -93,9 +145,31 @@ const assignDelivery = async (req, res) => {
             });
         }
 
+        const { riderId } = req.body;
+
+        if (
+            riderId === undefined ||
+            riderId === null ||
+            riderId === ""
+        ) {
+            return res.status(400).json({
+                status: "error",
+                message: "riderId is required"
+            });
+        }
+
+        const parsedRiderId = Number(riderId);
+
+        if (!Number.isInteger(parsedRiderId) || parsedRiderId <= 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "riderId must be a positive integer"
+            });
+        }
+
         const delivery = await assignDeliveryToRider({
             deliveryId: req.params.id,
-            riderId: req.body.riderId,
+            riderId: parsedRiderId,
             dispatcherId: req.user.userId
         });
 
@@ -151,10 +225,19 @@ const updateDeliveryStatus = async (req, res) => {
             });
         }
 
+        const { status } = req.body;
+
+        if (typeof status !== "string" || status.trim() === "") {
+            return res.status(400).json({
+                status: "error",
+                message: "status is required"
+            });
+        }
+
         const delivery = await changeDeliveryStatus({
             deliveryId: req.params.id,
             riderId: req.user.userId,
-            newStatus: req.body.status
+            newStatus: status.trim()
         });
 
         res.status(200).json({
@@ -223,11 +306,38 @@ const getDeliveryHistory = async (req, res) => {
     }
 };
 
+const getDeliveryStats = async (req, res) => {
+    try {
+        if (req.user.role !== "dispatcher") {
+            return res.status(403).json({
+                status: "error",
+                message: "Only dispatchers can view delivery statistics"
+            });
+        }
+
+        const stats = await fetchDeliveryStats();
+
+        res.status(200).json({
+            status: "ok",
+            message: "Delivery statistics retrieved successfully",
+            stats
+        });
+    } catch (error) {
+        console.error("Delivery statistics retrieval failed:", error.message);
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to retrieve delivery statistics"
+        });
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
     getDeliveryById,
     assignDelivery,
     updateDeliveryStatus,
-    getDeliveryHistory
+    getDeliveryHistory,
+    getDeliveryStats
 };
