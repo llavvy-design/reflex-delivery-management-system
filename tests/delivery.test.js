@@ -348,5 +348,110 @@ test("retailer cannot confirm a delivered delivery with an incorrect code", asyn
         message: "Invalid confirmation code"
     });
 });
+test("dispatcher can filter deliveries by status", async () => {
+    const response = await request(app)
+        .get("/api/deliveries?status=Pending")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe("ok");
+
+    expect(
+        response.body.deliveries.every(
+            (delivery) => delivery.status === "Pending"
+        )
+    ).toBe(true);
+});
+
+test("dispatcher can filter deliveries by rider", async () => {
+    const response = await request(app)
+        .get("/api/deliveries?riderId=4")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe("ok");
+
+    expect(
+        response.body.deliveries.every(
+            (delivery) => delivery.assigned_rider_id === 4
+        )
+    ).toBe(true);
+});
+
+test("dispatcher can filter unassigned deliveries", async () => {
+    const response = await request(app)
+        .get("/api/deliveries?unassigned=true")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe("ok");
+
+    expect(
+        response.body.deliveries.every(
+            (delivery) => delivery.assigned_rider_id === null
+        )
+    ).toBe(true);
+});
+
+test("dispatcher can combine delivery filters", async () => {
+    const response = await request(app)
+        .get("/api/deliveries?status=Assigned&riderId=4")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe("ok");
+
+    expect(
+        response.body.deliveries.every(
+            (delivery) =>
+                delivery.status === "Assigned" &&
+                delivery.assigned_rider_id === 4
+        )
+    ).toBe(true);
+});
+
+test("retailer only sees their own deliveries even when filters are supplied", async () => {
+    const response = await request(app)
+        .get("/api/deliveries?status=Delivered&riderId=4")
+        .set("Authorization", `Bearer ${retailerToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe("ok");
+
+    expect(
+        response.body.deliveries.every(
+            (delivery) => delivery.created_by === 1
+        )
+    ).toBe(true);
+});
+
+test("rider only sees deliveries assigned to them even when filters are supplied", async () => {
+    const response = await request(app)
+        .get("/api/deliveries?status=Delivered")
+        .set("Authorization", `Bearer ${riderToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.status).toBe("ok");
+
+    expect(
+        response.body.deliveries.every(
+            (delivery) => delivery.assigned_rider_id === 4
+        )
+    ).toBe(true);
+});
+
+test("dispatcher rejects an invalid delivery status filter", async () => {
+    const response = await request(app)
+        .get("/api/deliveries?status=Banana")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "Invalid delivery status"
+    });
+});
+
 
 });

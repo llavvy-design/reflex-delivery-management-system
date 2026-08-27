@@ -91,10 +91,25 @@ const getDeliveries = async (req, res) => {
     try {
         const { status, riderId, unassigned } = req.query;
 
-        const parsedRiderId =
-            riderId !== undefined
-                ? Number(riderId)
-                : undefined;
+             const validStatuses = [
+                  "Pending",
+                  "Assigned",
+                  "Picked Up",
+                  "Delivered",
+                  "Cancelled"
+             ];
+
+        if (status !== undefined && !validStatuses.includes(status)) {
+             return res.status(400).json({
+                 status: "error",
+                 message: "Invalid delivery status"
+            });
+        }
+
+const parsedRiderId =
+    riderId !== undefined
+        ? Number(riderId)
+        : undefined;
 
         if (
             parsedRiderId !== undefined &&
