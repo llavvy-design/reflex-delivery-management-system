@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const pool = require("../config/database");
+const jwt = require("jsonwebtoken");
 
 const registerUser = async ({ name, email, phone, password }) => {
     const existingUser = await pool.query(
@@ -46,13 +47,27 @@ const loginUser = async ({ email, password }) => {
         throw new Error("Invalid email or password");
     }
 
-    return {
+    const token = jwt.sign(
+    {
+        userId: user.id,
+        role: user.role
+    },
+    process.env.JWT_SECRET,
+    {
+        expiresIn: "1h"
+    }
+);
+
+return {
+    user: {
         id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role
-    };
+    },
+    token
+};
 };
 
 module.exports = {
