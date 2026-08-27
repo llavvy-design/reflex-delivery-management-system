@@ -3,6 +3,11 @@ const express = require("express");
 const { authenticateToken } = require("../middleware/authMiddleware");
 
 const {
+    confirmDelivery,
+    getDeliveryConfirmation
+} = require("../controllers/confirmationController");
+
+const {
     createDelivery,
     getDeliveries,
     getDeliveryById,
@@ -11,8 +16,7 @@ const {
     getDeliveryHistory,
     getDeliveryStats,
     updateDelivery,
-    cancelDelivery,
-    createDeliveryConfirmation
+    cancelDelivery 
 } = require("../controllers/deliveryController");
 
 const router = express.Router();
@@ -27,16 +31,15 @@ router.patch("/:id", authenticateToken, updateDelivery);
 
 router.post("/:id/cancel", authenticateToken, cancelDelivery);
 
+router.post("/:id/confirm", authenticateToken, confirmDelivery);
+
+router.get("/:id/confirmation", authenticateToken, getDeliveryConfirmation);
+
 router.get("/:id", authenticateToken, getDeliveryById);
 
 router.post("/:id/assign", authenticateToken, assignDelivery);
 
 router.patch("/:id/status", authenticateToken, updateDeliveryStatus);
-router.post(
-    "/:id/confirmation",
-    authenticateToken,
-    createDeliveryConfirmation
-);
 
 router.get("/:id/history", authenticateToken, getDeliveryHistory);
 

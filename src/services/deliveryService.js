@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const crypto = require("crypto");
 
 const createDelivery = async ({
     createdBy,
@@ -7,6 +8,10 @@ const createDelivery = async ({
     deliveryAddress,
     itemDescription
 }) => {
+    const confirmationCode = crypto
+        .randomInt(100000, 1000000)
+        .toString();
+
     const result = await pool.query(
         `INSERT INTO deliveries
             (
@@ -14,10 +19,11 @@ const createDelivery = async ({
                 customer_name,
                 customer_phone,
                 delivery_address,
-                item_description
+                item_description,
+                confirmation_code
             )
          VALUES
-            ($1, $2, $3, $4, $5)
+            ($1, $2, $3, $4, $5, $6)
          RETURNING
             id,
             created_by,
@@ -26,13 +32,15 @@ const createDelivery = async ({
             delivery_address,
             item_description,
             status,
+            confirmation_code,
             created_at`,
         [
             createdBy,
             customerName,
             customerPhone,
             deliveryAddress,
-            itemDescription
+            itemDescription,
+            confirmationCode
         ]
     );
 
