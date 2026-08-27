@@ -5,7 +5,9 @@ const {
     assignDelivery: assignDeliveryToRider,
     updateDeliveryStatus: changeDeliveryStatus,
     getDeliveryHistory: fetchDeliveryHistory,
-    getDeliveryStats: fetchDeliveryStats
+    getDeliveryStats: fetchDeliveryStats,
+    updateDelivery: updateDeliveryRecord,
+    cancelDelivery: cancelDeliveryRecord
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
@@ -332,6 +334,164 @@ const getDeliveryStats = async (req, res) => {
     }
 };
 
+const updateDelivery = async (req, res) => {
+    try {
+        if (req.user.role !== "retailer") {
+            return res.status(403).json({
+                status: "error",
+                message: "Only retailers can edit deliveries"
+            });
+        }
+
+        const {
+            customerName,
+            customerPhone,
+            deliveryAddress,
+            itemDescription
+        } = req.body;
+
+        const requiredFields = {
+            customerName,
+            customerPhone,
+            deliveryAddress,
+            itemDescription
+        };
+
+        for (const [field, value] of Object.entries(requiredFields)) {
+            if (typeof value !== "string" || value.trim() === "") {
+                return res.status(400).json({
+                    status: "error",
+                    message: `${field} is required`
+                });
+            }
+        }
+
+        if (customerName.trim().length > 100) {
+            return res.status(400).json({
+                status: "error",
+                message: "Customer name must not exceed 100 characters"
+            });
+        }
+
+        if (customerPhone.trim().length > 20) {
+            return res.status(400).json({
+                status: "error",
+                message: "Customer phone must not exceed 20 characters"
+            });
+        }
+
+        if (deliveryAddress.trim().length > 5000) {
+            return res.status(400).json({
+                status: "error",
+                message: "Delivery address is too long"
+            });
+        }
+
+        if (itemDescription.trim().length > 5000) {
+            return res.status(400).json({
+                status: "error",
+                message: "Item description is too long"
+            });
+        }
+
+        const delivery = await updateDeliveryRecord({
+            deliveryId: req.params.id,
+            retailerId: req.user.userId,
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            deliveryAddress: deliveryAddress.trim(),
+            itemDescription: itemDescription.trim()
+        });
+
+        if (!delivery) {
+            return res.status(404).json({
+                status: "error",
+                message: "Delivery not found or cannot be edited"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            message: "Delivery updated successfully",
+            delivery
+        });
+    } catch (error) {
+        console.error("Delivery update failed:", error.message);
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to update delivery"
+        });
+    }
+};
+
+const cancelDelivery = async (req, res) => {
+    try {
+        if (
+            req.user.role !== "retailer" &&
+            req.user.role !== "dispatcher"
+        ) {
+            return res.status(403).json({
+                status: "error",
+                message: "Only retailers or dispatchers can cancel deliveries"
+            });
+        }
+
+        const delivery = await cancelDeliveryRecord({
+            deliveryId: req.params.id,
+            userId: req.user.userId,
+            role: req.user.role
+        });
+
+        res.status(200).json({
+            status: "ok",
+            message: "Delivery cancelled successfully",
+            delivery
+        });
+    } catch (error) {
+        console.error("Delivery cancellation failed:", error.message);
+
+        if (error.message === "Delivery not found") {
+            return res.status(404).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (
+            error.message ===
+            "You are not authorized to cancel this delivery"
+        ) {
+            return res.status(403).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (
+            error.message ===
+            "Only retailers or dispatchers can cancel deliveries"
+        ) {
+            return res.status(403).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (error.message.startsWith("Delivery cannot be cancelled")) {
+            return res.status(409).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to cancel delivery"
+        });
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
@@ -339,5 +499,7 @@ module.exports = {
     assignDelivery,
     updateDeliveryStatus,
     getDeliveryHistory,
-    getDeliveryStats
+    getDeliveryStats,
+    updateDelivery,
+    cancelDelivery
 };

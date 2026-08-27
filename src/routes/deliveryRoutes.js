@@ -9,7 +9,9 @@ const {
     assignDelivery,
     updateDeliveryStatus,
     getDeliveryHistory,
-    getDeliveryStats
+    getDeliveryStats,
+    updateDelivery,
+    cancelDelivery
 } = require("../controllers/deliveryController");
 
 const router = express.Router();
@@ -20,6 +22,10 @@ router.get("/", authenticateToken, getDeliveries);
 
 router.get("/stats", authenticateToken, getDeliveryStats);
 
+router.patch("/:id", authenticateToken, updateDelivery);
+
+router.post("/:id/cancel", authenticateToken, cancelDelivery);
+
 router.get("/:id", authenticateToken, getDeliveryById);
 
 router.post("/:id/assign", authenticateToken, assignDelivery);
@@ -27,5 +33,7 @@ router.post("/:id/assign", authenticateToken, assignDelivery);
 router.patch("/:id/status", authenticateToken, updateDeliveryStatus);
 
 router.get("/:id/history", authenticateToken, getDeliveryHistory);
+
+
 
 module.exports = router;

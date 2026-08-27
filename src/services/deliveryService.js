@@ -404,6 +404,136 @@ const getDeliveryStats = async () => {
     };
 };
 
+const updateDelivery = async ({
+    deliveryId,
+    retailerId,
+    customerName,
+    customerPhone,
+    deliveryAddress,
+    itemDescription
+}) => {
+    const result = await pool.query(
+        `UPDATE deliveries
+         SET
+             customer_name = $1,
+             customer_phone = $2,
+             delivery_address = $3,
+             item_description = $4
+         WHERE id = $5
+           AND created_by = $6
+           AND status = 'Pending'
+         RETURNING
+             id,
+             created_by,
+             assigned_rider_id,
+             customer_name,
+             customer_phone,
+             delivery_address,
+             item_description,
+             status,
+             created_at`,
+        [
+            customerName,
+            customerPhone,
+            deliveryAddress,
+            itemDescription,
+            deliveryId,
+            retailerId
+        ]
+    );
+
+    return result.rows[0] || null;
+};
+
+const cancelDelivery = async ({
+    deliveryId,
+    userId,
+    role
+}) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        const deliveryResult = await client.query(
+            `SELECT
+                id,
+                created_by,
+                assigned_rider_id,
+                status
+             FROM deliveries
+             WHERE id = $1
+             FOR UPDATE`,
+            [deliveryId]
+        );
+
+        if (deliveryResult.rows.length === 0) {
+            throw new Error("Delivery not found");
+        }
+
+        const delivery = deliveryResult.rows[0];
+
+        if (
+            role === "retailer" &&
+            delivery.created_by !== userId
+        ) {
+            throw new Error("You are not authorized to cancel this delivery");
+        }
+
+        if (role !== "retailer" && role !== "dispatcher") {
+            throw new Error("Only retailers or dispatchers can cancel deliveries");
+        }
+
+        if (
+            delivery.status !== "Pending" &&
+            delivery.status !== "Assigned"
+        ) {
+            throw new Error(
+                `Delivery cannot be cancelled from ${delivery.status} status`
+            );
+        }
+
+        const updateResult = await client.query(
+            `UPDATE deliveries
+             SET status = 'Cancelled'
+             WHERE id = $1
+             RETURNING
+                 id,
+                 created_by,
+                 assigned_rider_id,
+                 customer_name,
+                 customer_phone,
+                 delivery_address,
+                 item_description,
+                 status,
+                 created_at`,
+            [deliveryId]
+        );
+
+        await client.query(
+            `INSERT INTO delivery_status_history
+                (delivery_id, changed_by, from_status, to_status)
+             VALUES
+                ($1, $2, $3, $4)`,
+            [
+                deliveryId,
+                userId,
+                delivery.status,
+                "Cancelled"
+            ]
+        );
+
+        await client.query("COMMIT");
+
+        return updateResult.rows[0];
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
@@ -411,5 +541,7 @@ module.exports = {
     assignDelivery,
     updateDeliveryStatus,
     getDeliveryHistory,
-    getDeliveryStats
+    getDeliveryStats,
+    updateDelivery,
+    cancelDelivery
 };
