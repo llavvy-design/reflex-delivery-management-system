@@ -1,6 +1,7 @@
 const {
     createDelivery: saveDelivery,
-    getDeliveries: fetchDeliveries
+    getDeliveries: fetchDeliveries,
+    getDeliveryById: fetchDeliveryById
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
@@ -50,7 +51,38 @@ const getDeliveries = async (req, res) => {
     }
 };
 
+const getDeliveryById = async (req, res) => {
+    try {
+        const delivery = await fetchDeliveryById({
+            deliveryId: req.params.id,
+            userId: req.user.userId,
+            role: req.user.role
+        });
+
+        if (!delivery) {
+            return res.status(404).json({
+                status: "error",
+                message: "Delivery not found"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            message: "Delivery retrieved successfully",
+            delivery
+        });
+    } catch (error) {
+        console.error("Delivery retrieval failed:", error.message);
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to retrieve delivery"
+        });
+    }
+};
+
 module.exports = {
     createDelivery,
-    getDeliveries
+    getDeliveries,
+    getDeliveryById
 };
