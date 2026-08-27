@@ -7,6 +7,7 @@ const pool = require("./config/database");
 
 const authRoutes = require("./routes/authRoutes");
 const deliveryRoutes = require("./routes/deliveryRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
@@ -65,6 +66,8 @@ app.get("/api/health/db/users", async (req, res) => {
 app.use("/api/auth", authRoutes);
 
 app.use("/api/deliveries", deliveryRoutes);
+
+app.use("/api/users", userRoutes);
 
 app.listen(PORT, () => {
     console.log(`Reflex API running on port ${PORT}`);
