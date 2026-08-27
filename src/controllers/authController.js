@@ -5,7 +5,54 @@ const {
 
 const registerUser = async (req, res) => {
     try {
-        const user = await createUser(req.body);
+        const {
+            name,
+            email,
+            phone,
+            password
+        } = req.body;
+
+        const requiredFields = {
+            name,
+            email,
+            phone,
+            password
+        };
+
+        for (const [field, value] of Object.entries(requiredFields)) {
+            if (typeof value !== "string" || value.trim() === "") {
+                return res.status(400).json({
+                    status: "error",
+                    message: `${field} is required`
+                });
+            }
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const emailPattern =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailPattern.test(normalizedEmail)) {
+            return res.status(400).json({
+                status: "error",
+                message: "email must be valid"
+            });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({
+                status: "error",
+                message: "password must be at least 8 characters"
+            });
+        }
+
+        const user = await createUser({
+            name: name.trim(),
+            email: normalizedEmail,
+            phone: phone.trim(),
+            password
+        });
 
         res.status(201).json({
             status: "ok",
