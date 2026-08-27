@@ -39,6 +39,72 @@ const createDelivery = async ({
     return result.rows[0];
 };
 
+const getDeliveries = async ({ userId, role }) => {
+    let query;
+    let values;
+
+    if (role === "retailer") {
+        query = `
+            SELECT
+                id,
+                created_by,
+                customer_name,
+                customer_phone,
+                delivery_address,
+                item_description,
+                status,
+                created_at
+            FROM deliveries
+            WHERE created_by = $1
+            ORDER BY created_at DESC
+        `;
+
+        values = [userId];
+    } else if (role === "dispatcher") {
+        query = `
+            SELECT
+                id,
+                created_by,
+                assigned_rider_id,
+                customer_name,
+                customer_phone,
+                delivery_address,
+                item_description,
+                status,
+                created_at
+            FROM deliveries
+            ORDER BY created_at DESC
+        `;
+
+        values = [];
+    } else if (role === "rider") {
+        query = `
+            SELECT
+                id,
+                created_by,
+                assigned_rider_id,
+                customer_name,
+                customer_phone,
+                delivery_address,
+                item_description,
+                status,
+                created_at
+            FROM deliveries
+            WHERE assigned_rider_id = $1
+            ORDER BY created_at DESC
+        `;
+
+        values = [userId];
+    } else {
+        throw new Error("Invalid user role");
+    }
+
+    const result = await pool.query(query, values);
+
+    return result.rows;
+};
+
 module.exports = {
-    createDelivery
+    createDelivery,
+    getDeliveries
 };

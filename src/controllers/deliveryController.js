@@ -1,5 +1,6 @@
 const {
-    createDelivery: saveDelivery
+    createDelivery: saveDelivery,
+    getDeliveries: fetchDeliveries
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
@@ -27,6 +28,29 @@ const createDelivery = async (req, res) => {
     }
 };
 
+const getDeliveries = async (req, res) => {
+    try {
+        const deliveries = await fetchDeliveries({
+            userId: req.user.userId,
+            role: req.user.role
+        });
+
+        res.status(200).json({
+            status: "ok",
+            message: "Deliveries retrieved successfully",
+            deliveries
+        });
+    } catch (error) {
+        console.error("Delivery retrieval failed:", error.message);
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to retrieve deliveries"
+        });
+    }
+};
+
 module.exports = {
-    createDelivery
+    createDelivery,
+    getDeliveries
 };
