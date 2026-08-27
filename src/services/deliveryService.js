@@ -47,7 +47,13 @@ const createDelivery = async ({
     return result.rows[0];
 };
 
-const getDeliveries = async ({ userId, role }) => {
+const getDeliveries = async ({
+    userId,
+    role,
+    status,
+    riderId,
+    unassigned
+}) => {
     let query;
     let values;
 
@@ -69,22 +75,38 @@ const getDeliveries = async ({ userId, role }) => {
 
         values = [userId];
     } else if (role === "dispatcher") {
-        query = `
-            SELECT
-                id,
-                created_by,
-                assigned_rider_id,
-                customer_name,
-                customer_phone,
-                delivery_address,
-                item_description,
-                status,
-                created_at
-            FROM deliveries
-            ORDER BY created_at DESC
-        `;
+       query = `
+        SELECT
+            id,
+            created_by,
+            assigned_rider_id,
+            customer_name,
+            customer_phone,
+            delivery_address,
+            item_description,
+            status,
+            created_at
+        FROM deliveries
+        WHERE 1 = 1
+    `;
 
-        values = [];
+    values = [];
+
+    if (status) {
+        values.push(status);
+        query += ` AND status = $${values.length}`;
+    }
+
+    if (riderId) {
+        values.push(riderId);
+        query += ` AND assigned_rider_id = $${values.length}`;
+    }
+
+    if (unassigned === true) {
+        query += ` AND assigned_rider_id IS NULL`;
+    }
+
+    query += ` ORDER BY created_at DESC`;
     } else if (role === "rider") {
         query = `
             SELECT

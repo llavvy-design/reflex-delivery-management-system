@@ -89,9 +89,29 @@ const createDelivery = async (req, res) => {
 
 const getDeliveries = async (req, res) => {
     try {
+        const { status, riderId, unassigned } = req.query;
+
+        const parsedRiderId =
+            riderId !== undefined
+                ? Number(riderId)
+                : undefined;
+
+        if (
+            parsedRiderId !== undefined &&
+            (!Number.isInteger(parsedRiderId) || parsedRiderId <= 0)
+        ) {
+            return res.status(400).json({
+                status: "error",
+                message: "riderId must be a positive integer"
+            });
+        }
+
         const deliveries = await fetchDeliveries({
             userId: req.user.userId,
-            role: req.user.role
+            role: req.user.role,
+            status,
+            riderId: parsedRiderId,
+            unassigned: unassigned === "true"
         });
 
         res.status(200).json({
