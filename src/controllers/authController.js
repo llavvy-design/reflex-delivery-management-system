@@ -54,9 +54,19 @@ const loginUser = async (req, res) => {
             message: "Login failed"
         });
     }
+
+};
+
+const getCurrentUser = (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        message: "Authentication verified",
+        user: req.user
+    });
 };
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    getCurrentUser
 };
