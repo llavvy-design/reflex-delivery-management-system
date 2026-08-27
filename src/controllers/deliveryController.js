@@ -7,7 +7,8 @@ const {
     getDeliveryHistory: fetchDeliveryHistory,
     getDeliveryStats: fetchDeliveryStats,
     updateDelivery: updateDeliveryRecord,
-    cancelDelivery: cancelDeliveryRecord
+    cancelDelivery: cancelDeliveryRecord,
+        createDeliveryConfirmation: createDeliveryConfirmationRecord
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
@@ -189,6 +190,13 @@ const assignDelivery = async (req, res) => {
                 message: error.message
             });
         }
+
+        if (error.message === "Rider is currently unavailable") {
+    return res.status(409).json({
+        status: "error",
+        message: error.message
+    });
+}
 
         if (error.message === "Delivery not found") {
             return res.status(404).json({
@@ -492,6 +500,92 @@ const cancelDelivery = async (req, res) => {
     }
 };
 
+const createDeliveryConfirmation = async (req, res) => {
+    try {
+        if (req.user.role !== "rider") {
+            return res.status(403).json({
+                status: "error",
+                message: "Only riders can confirm deliveries"
+            });
+        }
+
+        const { method } = req.body;
+
+        if (typeof method !== "string" || method.trim() === "") {
+            return res.status(400).json({
+                status: "error",
+                message: "method is required"
+            });
+        }
+
+        if (method.trim().length > 30) {
+            return res.status(400).json({
+                status: "error",
+                message: "method must not exceed 30 characters"
+            });
+        }
+
+        const confirmation = await createDeliveryConfirmationRecord({
+            deliveryId: req.params.id,
+            riderId: req.user.userId,
+            method: method.trim()
+        });
+
+        res.status(201).json({
+            status: "ok",
+            message: "Delivery confirmation recorded successfully",
+            confirmation
+        });
+    } catch (error) {
+        console.error(
+            "Delivery confirmation failed:",
+            error.message
+        );
+
+        if (error.message === "Delivery not found") {
+            return res.status(404).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (
+            error.message ===
+            "You are not assigned to this delivery"
+        ) {
+            return res.status(403).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (
+            error.message ===
+            "Delivery must be Delivered before confirmation"
+        ) {
+            return res.status(409).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (
+            error.message ===
+            "Delivery has already been confirmed"
+        ) {
+            return res.status(409).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to record delivery confirmation"
+        });
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
@@ -501,5 +595,6 @@ module.exports = {
     getDeliveryHistory,
     getDeliveryStats,
     updateDelivery,
-    cancelDelivery
+    cancelDelivery,
+    createDeliveryConfirmation
 };

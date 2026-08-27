@@ -177,16 +177,24 @@ const assignDelivery = async ({ deliveryId, riderId, dispatcherId }) => {
         await client.query("BEGIN");
 
         const riderResult = await client.query(
-            `SELECT id
-             FROM users
-             WHERE id = $1
-               AND role = 'rider'`,
-            [riderId]
-        );
+    `SELECT
+        id,
+        is_available
+     FROM users
+     WHERE id = $1
+       AND role = 'rider'`,
+    [riderId]
+);
 
-        if (riderResult.rows.length === 0) {
-            throw new Error("Rider not found");
-        }
+if (riderResult.rows.length === 0) {
+    throw new Error("Rider not found");
+}
+
+const rider = riderResult.rows[0];
+
+if (!rider.is_available) {
+    throw new Error("Rider is currently unavailable");
+}
 
         const deliveryResult = await client.query(
             `SELECT id, status, assigned_rider_id
@@ -534,6 +542,92 @@ const cancelDelivery = async ({
     }
 };
 
+const createDeliveryConfirmation = async ({
+    deliveryId,
+    riderId,
+    method
+}) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        const deliveryResult = await client.query(
+            `SELECT
+                id,
+                assigned_rider_id,
+                status
+             FROM deliveries
+             WHERE id = $1
+             FOR UPDATE`,
+            [deliveryId]
+        );
+
+        if (deliveryResult.rows.length === 0) {
+            throw new Error("Delivery not found");
+        }
+
+        const delivery = deliveryResult.rows[0];
+
+        if (delivery.assigned_rider_id !== riderId) {
+            throw new Error("You are not assigned to this delivery");
+        }
+
+        if (delivery.status !== "Delivered") {
+            throw new Error(
+                "Delivery must be Delivered before confirmation"
+            );
+        }
+
+        const existingConfirmation = await client.query(
+            `SELECT
+                id,
+                delivery_id,
+                confirmed_by,
+                method,
+                confirmed_at
+             FROM confirmations
+             WHERE delivery_id = $1`,
+            [deliveryId]
+        );
+
+        if (existingConfirmation.rows.length > 0) {
+            throw new Error("Delivery has already been confirmed");
+        }
+
+        const confirmationResult = await client.query(
+            `INSERT INTO confirmations
+                (
+                    delivery_id,
+                    confirmed_by,
+                    method
+                )
+             VALUES
+                ($1, $2, $3)
+             RETURNING
+                id,
+                delivery_id,
+                confirmed_by,
+                method,
+                confirmed_at`,
+            [
+                deliveryId,
+                riderId,
+                method
+            ]
+        );
+
+        await client.query("COMMIT");
+
+        return confirmationResult.rows[0];
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
@@ -543,5 +637,6 @@ module.exports = {
     getDeliveryHistory,
     getDeliveryStats,
     updateDelivery,
-    cancelDelivery
+    cancelDelivery,
+    createDeliveryConfirmation
 };

@@ -1,5 +1,6 @@
 const {
-    getRiders: fetchRiders
+    getRiders: fetchRiders,
+    updateRiderAvailability: changeRiderAvailability
 } = require("../services/userService");
 
 const getRiders = async (req, res) => {
@@ -28,6 +29,61 @@ const getRiders = async (req, res) => {
     }
 };
 
+const updateRiderAvailability = async (req, res) => {
+    try {
+        if (req.user.role !== "rider") {
+            return res.status(403).json({
+                status: "error",
+                message: "Only riders can update their availability"
+            });
+        }
+
+        const { isAvailable } = req.body;
+
+        if (typeof isAvailable !== "boolean") {
+            return res.status(400).json({
+                status: "error",
+                message: "isAvailable must be a boolean"
+            });
+        }
+
+        const rider = await changeRiderAvailability({
+            riderId: req.user.userId,
+            isAvailable
+        });
+
+        if (!rider) {
+            return res.status(404).json({
+                status: "error",
+                message: "Rider not found"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            message: "Rider availability updated successfully",
+            rider: {
+                id: rider.id,
+                name: rider.name,
+                email: rider.email,
+                phone: rider.phone,
+                isAvailable: rider.is_available
+            }
+        });
+    } catch (error) {
+        console.error(
+            "Rider availability update failed:",
+            error.message
+        );
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to update rider availability"
+        });
+    }
+};
+
 module.exports = {
-    getRiders
+    getRiders,
+    updateRiderAvailability
 };

@@ -11,7 +11,8 @@ const {
     getDeliveryHistory,
     getDeliveryStats,
     updateDelivery,
-    cancelDelivery
+    cancelDelivery,
+    createDeliveryConfirmation
 } = require("../controllers/deliveryController");
 
 const router = express.Router();
@@ -31,6 +32,11 @@ router.get("/:id", authenticateToken, getDeliveryById);
 router.post("/:id/assign", authenticateToken, assignDelivery);
 
 router.patch("/:id/status", authenticateToken, updateDeliveryStatus);
+router.post(
+    "/:id/confirmation",
+    authenticateToken,
+    createDeliveryConfirmation
+);
 
 router.get("/:id/history", authenticateToken, getDeliveryHistory);
 
