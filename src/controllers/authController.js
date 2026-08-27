@@ -1,4 +1,7 @@
-const { registerUser: createUser } = require("../services/authService");
+const {
+    registerUser: createUser,
+    loginUser: authenticateUser
+} = require("../services/authService");
 
 const registerUser = async (req, res) => {
     try {
@@ -26,6 +29,33 @@ const registerUser = async (req, res) => {
     }
 };
 
+const loginUser = async (req, res) => {
+    try {
+        const user = await authenticateUser(req.body);
+
+        res.status(200).json({
+            status: "ok",
+            message: "Login successful",
+            user
+        });
+    } catch (error) {
+        console.error("Login failed:", error.message);
+
+        if (error.message === "Invalid email or password") {
+            return res.status(401).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        res.status(500).json({
+            status: "error",
+            message: "Login failed"
+        });
+    }
+};
+
 module.exports = {
-    registerUser
+    registerUser,
+    loginUser
 };
