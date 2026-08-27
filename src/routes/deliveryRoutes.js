@@ -6,7 +6,8 @@ const {
     createDelivery,
     getDeliveries,
     getDeliveryById,
-    assignDelivery
+    assignDelivery,
+    updateDeliveryStatus
 } = require("../controllers/deliveryController");
 
 const router = express.Router();
@@ -18,5 +19,7 @@ router.get("/", authenticateToken, getDeliveries);
 router.get("/:id", authenticateToken, getDeliveryById);
 
 router.post("/:id/assign", authenticateToken, assignDelivery);
+
+router.patch("/:id/status", authenticateToken, updateDeliveryStatus);
 
 module.exports = router;

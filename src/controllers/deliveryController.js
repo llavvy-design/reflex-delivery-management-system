@@ -2,7 +2,8 @@ const {
     createDelivery: saveDelivery,
     getDeliveries: fetchDeliveries,
     getDeliveryById: fetchDeliveryById,
-    assignDelivery: assignDeliveryToRider
+    assignDelivery: assignDeliveryToRider,
+    updateDeliveryStatus: changeDeliveryStatus
 } = require("../services/deliveryService");
 
 const createDelivery = async (req, res) => {
@@ -140,9 +141,61 @@ const assignDelivery = async (req, res) => {
     }
 };
 
+const updateDeliveryStatus = async (req, res) => {
+    try {
+        if (req.user.role !== "rider") {
+            return res.status(403).json({
+                status: "error",
+                message: "Only riders can update delivery status"
+            });
+        }
+
+        const delivery = await changeDeliveryStatus({
+            deliveryId: req.params.id,
+            riderId: req.user.userId,
+            newStatus: req.body.status
+        });
+
+        res.status(200).json({
+            status: "ok",
+            message: "Delivery status updated successfully",
+            delivery
+        });
+    } catch (error) {
+        console.error("Delivery status update failed:", error.message);
+
+        if (error.message === "Delivery not found") {
+            return res.status(404).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (error.message === "You are not assigned to this delivery") {
+            return res.status(403).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        if (error.message.startsWith("Invalid status transition")) {
+            return res.status(409).json({
+                status: "error",
+                message: error.message
+            });
+        }
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to update delivery status"
+        });
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
     getDeliveryById,
-    assignDelivery
+    assignDelivery,
+    updateDeliveryStatus
 };

@@ -248,9 +248,96 @@ const assignDelivery = async ({ deliveryId, riderId, dispatcherId }) => {
     }
 };
 
+const updateDeliveryStatus = async ({
+    deliveryId,
+    riderId,
+    newStatus
+}) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        const deliveryResult = await client.query(
+            `SELECT
+                id,
+                assigned_rider_id,
+                status
+             FROM deliveries
+             WHERE id = $1
+             FOR UPDATE`,
+            [deliveryId]
+        );
+
+        if (deliveryResult.rows.length === 0) {
+            throw new Error("Delivery not found");
+        }
+
+        const delivery = deliveryResult.rows[0];
+
+        if (delivery.assigned_rider_id !== riderId) {
+            throw new Error("You are not assigned to this delivery");
+        }
+
+        const allowedTransitions = {
+            "Assigned": ["Picked Up"],
+            "Picked Up": ["Delivered"]
+        };
+
+        const allowedNextStatuses =
+            allowedTransitions[delivery.status] || [];
+
+        if (!allowedNextStatuses.includes(newStatus)) {
+            throw new Error(
+                `Invalid status transition from ${delivery.status} to ${newStatus}`
+            );
+        }
+
+        const updateResult = await client.query(
+            `UPDATE deliveries
+             SET status = $1
+             WHERE id = $2
+             RETURNING
+                 id,
+                 created_by,
+                 assigned_rider_id,
+                 customer_name,
+                 customer_phone,
+                 delivery_address,
+                 item_description,
+                 status,
+                 created_at`,
+            [newStatus, deliveryId]
+        );
+
+        await client.query(
+            `INSERT INTO delivery_status_history
+                (delivery_id, changed_by, from_status, to_status)
+             VALUES
+                ($1, $2, $3, $4)`,
+            [
+                deliveryId,
+                riderId,
+                delivery.status,
+                newStatus
+            ]
+        );
+
+        await client.query("COMMIT");
+
+        return updateResult.rows[0];
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     createDelivery,
     getDeliveries,
     getDeliveryById,
-    assignDelivery
+    assignDelivery,
+    updateDeliveryStatus
 };
