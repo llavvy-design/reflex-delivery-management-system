@@ -146,8 +146,17 @@ const parsedRiderId =
 
 const getDeliveryById = async (req, res) => {
     try {
+        const deliveryId = Number(req.params.id);
+
+        if (!Number.isInteger(deliveryId) || deliveryId <= 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "delivery ID must be a positive integer"
+            });
+        }
+
         const delivery = await fetchDeliveryById({
-            deliveryId: req.params.id,
+            deliveryId,
             userId: req.user.userId,
             role: req.user.role
         });
@@ -183,6 +192,15 @@ const assignDelivery = async (req, res) => {
             });
         }
 
+        const deliveryId = Number(req.params.id);
+
+        if (!Number.isInteger(deliveryId) || deliveryId <= 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "delivery ID must be a positive integer"
+            });
+        }
+
         const { riderId } = req.body;
 
         if (
@@ -206,7 +224,7 @@ const assignDelivery = async (req, res) => {
         }
 
         const delivery = await assignDeliveryToRider({
-            deliveryId: req.params.id,
+            deliveryId,
             riderId: parsedRiderId,
             dispatcherId: req.user.userId
         });
@@ -270,6 +288,15 @@ const updateDeliveryStatus = async (req, res) => {
             });
         }
 
+        const deliveryId = Number(req.params.id);
+
+        if (!Number.isInteger(deliveryId) || deliveryId <= 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "delivery ID must be a positive integer"
+            });
+        }
+
         const { status } = req.body;
 
         if (typeof status !== "string" || status.trim() === "") {
@@ -280,7 +307,7 @@ const updateDeliveryStatus = async (req, res) => {
         }
 
         const delivery = await changeDeliveryStatus({
-            deliveryId: req.params.id,
+            deliveryId,
             riderId: req.user.userId,
             newStatus: status.trim()
         });
@@ -323,8 +350,17 @@ const updateDeliveryStatus = async (req, res) => {
 
 const getDeliveryHistory = async (req, res) => {
     try {
+        const deliveryId = Number(req.params.id);
+
+        if (!Number.isInteger(deliveryId) || deliveryId <= 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "delivery ID must be a positive integer"
+            });
+        }
+
         const history = await fetchDeliveryHistory({
-            deliveryId: req.params.id,
+            deliveryId,
             userId: req.user.userId,
             role: req.user.role
         });
@@ -469,6 +505,16 @@ const updateDelivery = async (req, res) => {
 };
 
 const cancelDelivery = async (req, res) => {
+
+    const deliveryId = Number(req.params.id);
+
+        if (!Number.isInteger(deliveryId) || deliveryId <= 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "delivery ID must be a positive integer"
+            });
+        }
+
     try {
         if (
             req.user.role !== "retailer" &&
@@ -481,7 +527,7 @@ const cancelDelivery = async (req, res) => {
         }
 
         const delivery = await cancelDeliveryRecord({
-            deliveryId: req.params.id,
+            deliveryId,
             userId: req.user.userId,
             role: req.user.role
         });

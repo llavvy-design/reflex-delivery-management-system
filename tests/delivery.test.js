@@ -453,5 +453,102 @@ test("dispatcher rejects an invalid delivery status filter", async () => {
     });
 });
 
+test("dispatcher rejects a non-numeric delivery ID", async () => {
+    const response = await request(app)
+        .get("/api/deliveries/abc")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "delivery ID must be a positive integer"
+    });
+});
+
+test("dispatcher rejects a non-positive delivery ID", async () => {
+    const response = await request(app)
+        .get("/api/deliveries/-1")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "delivery ID must be a positive integer"
+    });
+});
+
+test("dispatcher returns 404 for a delivery ID that does not exist", async () => {
+    const response = await request(app)
+        .get("/api/deliveries/999999")
+        .set("Authorization", `Bearer ${dispatcherToken}`);
+
+    expect(response.statusCode).toBe(404);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "Delivery not found"
+    });
+});
+
+test("rider rejects a non-numeric delivery ID when updating status", async () => {
+    const response = await request(app)
+        .patch("/api/deliveries/abc/status")
+        .set("Authorization", `Bearer ${riderToken}`)
+        .send({
+            status: "Picked Up"
+        });
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "delivery ID must be a positive integer"
+    });
+});
+
+test("dispatcher rejects a non-numeric delivery ID when assigning", async () => {
+    const response = await request(app)
+        .post("/api/deliveries/abc/assign")
+        .set("Authorization", `Bearer ${dispatcherToken}`)
+        .send({
+            riderId: 4
+        });
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "delivery ID must be a positive integer"
+    });
+});
+
+test("user rejects a non-numeric delivery ID when retrieving history", async () => {
+    const response = await request(app)
+        .get("/api/deliveries/abc/history")
+        .set("Authorization", `Bearer ${retailerToken}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "delivery ID must be a positive integer"
+    });
+});
+
+test("retailer rejects a non-numeric delivery ID when cancelling", async () => {
+    const response = await request(app)
+        .post("/api/deliveries/abc/cancel")
+        .set("Authorization", `Bearer ${retailerToken}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        status: "error",
+        message: "delivery ID must be a positive integer"
+    });
+});
+
 
 });
