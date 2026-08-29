@@ -12,8 +12,8 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("reflex_token");
-        const storedUser = localStorage.getItem("reflex_user");
+        const token = sessionStorage.getItem("reflex_token");
+        const storedUser = sessionStorage.getItem("reflex_user");
 
         if (token && storedUser) {
             try {
@@ -35,9 +35,8 @@ export const AuthProvider = ({ children }) => {
 
         const { token, user } = response.data;
 
-        localStorage.setItem("reflex_token", token);
-localStorage.setItem("reflex_user", JSON.stringify(user));
-
+        sessionStorage.setItem("reflex_token", token);
+sessionStorage.setItem("reflex_user", JSON.stringify(user));
 setUser(user);
 
 connectSocket();
@@ -48,9 +47,8 @@ return response.data;
     const logout = () => {
     disconnectSocket();
 
-    localStorage.removeItem("reflex_token");
-    localStorage.removeItem("reflex_user");
-
+    sessionStorage.removeItem("reflex_token");
+sessionStorage.removeItem("reflex_user");
     setUser(null);
 };
 

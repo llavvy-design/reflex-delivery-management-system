@@ -9,7 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("reflex_token");
+        const token = sessionStorage.getItem("reflex_token");
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;

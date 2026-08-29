@@ -9,6 +9,7 @@ import socket, {
     connectSocket,
     disconnectSocket
 } from "../sockets/socket";
+import Sidebar from "../components/Sidebar";
 
 const getInitials = (name = "") => {
     return name
@@ -205,52 +206,7 @@ const RetailerDashboard = () => {
 
     return (
         <div className="dashboard-layout">
-            <aside className="dashboard-sidebar">
-                <div className="dashboard-brand">
-                    <p className="dashboard-brand-name">
-                        REFLEX
-                    </p>
-
-                    <p className="dashboard-brand-subtitle">
-                        Delivery management
-                    </p>
-                </div>
-
-                <nav className="dashboard-nav">
-                    <a
-                        href="/retailer"
-                        className="active"
-                        onClick={(event) => {
-                            event.preventDefault();
-                            navigate("/retailer");
-                        }}
-                    >
-                        Dashboard
-                    </a>
-
-                    <a
-                        href="/retailer/deliveries/new"
-                        onClick={(event) => {
-                            event.preventDefault();
-                            navigate("/retailer/deliveries/new");
-                        }}
-                    >
-                        New delivery
-                    </a>
-                </nav>
-
-                <div className="dashboard-sidebar-footer">
-                    <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={logout}
-                        style={{ width: "100%" }}
-                    >
-                        Sign out
-                    </button>
-                </div>
-            </aside>
-
+            <Sidebar role="retailer" />
             <main className="dashboard-main">
                 <header className="dashboard-topbar">
                     <div className="dashboard-heading">

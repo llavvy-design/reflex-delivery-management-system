@@ -6,6 +6,7 @@ import {
     updateDeliveryStatus
 } from "../services/deliveryService";
 import socket from "../sockets/socket";
+import Sidebar from "../components/Sidebar";
 
 const getInitials = (name = "") => {
     return name
@@ -180,41 +181,7 @@ const RiderDashboard = () => {
 
     return (
         <div className="dashboard-layout">
-            <aside className="dashboard-sidebar">
-                <div className="dashboard-brand">
-                    <p className="dashboard-brand-name">
-                        REFLEX
-                    </p>
-
-                    <p className="dashboard-brand-subtitle">
-                        Rider workspace
-                    </p>
-                </div>
-
-                <nav className="dashboard-nav">
-                    <a
-                        href="/rider"
-                        className="active"
-                        onClick={(event) => {
-                            event.preventDefault();
-                            navigate("/rider");
-                        }}
-                    >
-                        Dashboard
-                    </a>
-                </nav>
-
-                <div className="dashboard-sidebar-footer">
-                    <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={logout}
-                        style={{ width: "100%" }}
-                    >
-                        Sign out
-                    </button>
-                </div>
-            </aside>
+            <Sidebar role="rider" />
 
             <main className="dashboard-main">
                 <header className="dashboard-topbar">

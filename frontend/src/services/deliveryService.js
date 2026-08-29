@@ -78,3 +78,29 @@ export const updateDeliveryStatus = async (
 
     return response.data.delivery;
 };
+
+export const getDeliveryStats = async () => {
+    const response = await api.get("/deliveries/stats");
+
+    return response.data.stats;
+};
+
+export const getRiders = async () => {
+    const response = await api.get("/users/riders");
+
+    return response.data.riders;
+};
+
+export const assignDelivery = async (
+    deliveryId,
+    riderId
+) => {
+    const response = await api.post(
+        `/deliveries/${deliveryId}/assign`,
+        {
+            riderId
+        }
+    );
+
+    return response.data.delivery;
+};

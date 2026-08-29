@@ -90,7 +90,7 @@ const Login = () => {
                             value={form.email}
                             onChange={handleChange}
                             placeholder="you@example.com"
-                            autoComplete="email"
+                            autoComplete="off"
                             required
                         />
                     </div>

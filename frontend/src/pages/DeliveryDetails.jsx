@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
     getDelivery,
     getDeliveryHistory,
@@ -23,6 +24,14 @@ const formatDate = (date) => {
 const DeliveryDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const dashboardPath =
+    user?.role === "dispatcher"
+        ? "/dispatcher"
+        : user?.role === "rider"
+        ? "/rider"
+        : "/retailer";
 
     const [delivery, setDelivery] = useState(null);
     const [history, setHistory] = useState([]);
@@ -44,14 +53,16 @@ const DeliveryDetails = () => {
                 const historyData = await getDeliveryHistory(id);
                 setHistory(historyData || []);
 
-                try {
-                    const confirmationData =
-                        await getDeliveryConfirmation(id);
+                if (user?.role === "retailer") {
+    try {
+        const confirmationData =
+            await getDeliveryConfirmation(id);
 
-                    setConfirmation(confirmationData);
-                } catch {
-                    setConfirmation(null);
-                }
+        setConfirmation(confirmationData);
+    } catch {
+        setConfirmation(null);
+    }
+}
             } catch (error) {
                 setError(
                     error.response?.data?.message ||
@@ -99,7 +110,7 @@ const DeliveryDetails = () => {
                             width: "auto",
                             marginTop: "24px"
                         }}
-                        onClick={() => navigate("/retailer")}
+                        onClick={() => navigate(dashboardPath)}
                     >
                         Back to deliveries
                     </button>
@@ -116,7 +127,7 @@ const DeliveryDetails = () => {
                         <button
                             type="button"
                             className="secondary-button"
-                            onClick={() => navigate("/retailer")}
+                            onClick={() => navigate(dashboardPath)}
                             style={{
                                 marginBottom: "20px"
                             }}

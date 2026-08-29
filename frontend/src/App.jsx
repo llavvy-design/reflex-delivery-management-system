@@ -7,7 +7,7 @@ import EditDelivery from "./pages/EditDelivery";
 import Login from "./pages/Login";
 import RetailerDashboard from "./pages/RetailerDashboard";
 import RiderDashboard from "./pages/RiderDashboard";
-
+import DispatcherDashboard from "./pages/DispatcherDashboard";
 const Home = () => {
     const { user, isAuthenticated } = useAuth();
 
@@ -23,20 +23,9 @@ const Home = () => {
         return <Navigate to="/rider" replace />;
     }
 
-    /*
-     * Dispatcher dashboard has not been built yet.
-     * Keep the dispatcher on the existing placeholder
-     * until we create the actual dispatcher UI.
-     */
     if (user.role === "dispatcher") {
-        return (
-            <main>
-                <h1>Reflex</h1>
-                <p>Welcome, {user.name}.</p>
-                <p>Role: {user.role}</p>
-            </main>
-        );
-    }
+    return <Navigate to="/dispatcher" replace />;
+}
 
     return (
         <main>
@@ -81,6 +70,12 @@ const App = () => {
                 path="/rider"
                 element={<RiderDashboard />}
             />
+
+            {/* Dispatcher */}
+<Route
+    path="/dispatcher"
+    element={<DispatcherDashboard />}
+/>
 
             {/* Home / role redirect */}
             <Route

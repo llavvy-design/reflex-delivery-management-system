@@ -8,7 +8,7 @@ const socket = io(
 );
 
 export const connectSocket = () => {
-    const token = localStorage.getItem("reflex_token");
+    const token = sessionStorage.getItem("reflex_token");
 
     if (!token) {
         return;
