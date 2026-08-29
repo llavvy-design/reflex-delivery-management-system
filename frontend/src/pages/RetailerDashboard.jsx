@@ -29,6 +29,9 @@ const RetailerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All");
+
     const loadDeliveries = async () => {
         try {
             setError("");
@@ -49,6 +52,37 @@ const RetailerDashboard = () => {
     useEffect(() => {
         loadDeliveries();
     }, []);
+
+
+    const filteredDeliveries = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return deliveries.filter((delivery) => {
+        const matchesSearch =
+            !normalizedSearch ||
+            String(delivery.id)
+                .toLowerCase()
+                .includes(normalizedSearch) ||
+            delivery.customer_name
+                ?.toLowerCase()
+                .includes(normalizedSearch) ||
+            delivery.customer_phone
+                ?.toLowerCase()
+                .includes(normalizedSearch) ||
+            delivery.delivery_address
+                ?.toLowerCase()
+                .includes(normalizedSearch) ||
+            delivery.item_description
+                ?.toLowerCase()
+                .includes(normalizedSearch);
+
+        const matchesStatus =
+            statusFilter === "All" ||
+            delivery.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+}, [deliveries, searchTerm, statusFilter]);
 
     const counts = useMemo(() => {
         return {
@@ -249,22 +283,66 @@ const RetailerDashboard = () => {
                         </button>
                     </div>
 
-                    {deliveries.length === 0 ? (
+                    <div className="delivery-filters">
+    <div className="delivery-search">
+        <label htmlFor="delivery-search">
+            Search deliveries
+        </label>
+
+        <input
+            id="delivery-search"
+            type="search"
+            value={searchTerm}
+            onChange={(event) =>
+                setSearchTerm(event.target.value)
+            }
+            placeholder="Search by customer, ID, phone, address..."
+        />
+    </div>
+
+    <div className="delivery-status-filter">
+        <label htmlFor="status-filter">
+            Status
+        </label>
+
+        <select
+            id="status-filter"
+            value={statusFilter}
+            onChange={(event) =>
+                setStatusFilter(event.target.value)
+            }
+        >
+            <option value="All">All statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Assigned">Assigned</option>
+            <option value="Picked Up">Picked up</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+    </div>
+</div>
+
+                    {filteredDeliveries.length === 0 ? (
                         <div className="empty-state">
-                            <div className="empty-state-icon">
-                                +
-                            </div>
+    <div className="empty-state-icon">
+        {deliveries.length === 0 ? "+" : "×"}
+    </div>
 
-                            <h3>No deliveries yet</h3>
+    <h3>
+        {deliveries.length === 0
+            ? "No deliveries yet"
+            : "No matching deliveries"}
+    </h3>
 
-                            <p>
-                                Create your first delivery to start
-                                tracking it with Reflex.
-                            </p>
-                        </div>
+    <p>
+        {deliveries.length === 0
+            ? "Create your first delivery to start tracking it with Reflex."
+            : "Try adjusting your search or status filter."}
+    </p>
+</div>
                     ) : (
                         <div className="delivery-list">
-                            {deliveries.map((delivery) => (
+                            {filteredDeliveries.map((delivery) => (
                                 <article
                                     className="delivery-card"
                                     key={delivery.id}

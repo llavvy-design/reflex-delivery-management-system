@@ -745,3 +745,58 @@
 .timeline-item-complete .timeline-content strong {
     color: var(--reflex-text);
 }
+
+.delivery-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--reflex-surface);
+    border: 1px solid var(--reflex-border);
+    border-radius: var(--reflex-radius-md);
+}
+
+.delivery-search,
+.delivery-status-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.delivery-filters label {
+    color: var(--reflex-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.delivery-filters input,
+.delivery-filters select {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--reflex-border);
+    border-radius: var(--reflex-radius-sm);
+    padding: 11px 13px;
+    color: var(--reflex-text);
+    background: var(--reflex-bg);
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.delivery-filters input:focus,
+.delivery-filters select:focus {
+    border-color: var(--reflex-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+@media (max-width: 700px) {
+    .delivery-filters {
+        grid-template-columns: 1fr;
+    }
+}
