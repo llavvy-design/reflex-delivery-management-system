@@ -583,15 +583,21 @@ const createDeliveryConfirmation = async ({
         await client.query("BEGIN");
 
         const deliveryResult = await client.query(
-            `SELECT
-                id,
-                assigned_rider_id,
-                status
-             FROM deliveries
-             WHERE id = $1
-             FOR UPDATE`,
-            [deliveryId]
-        );
+        `SELECT
+        id,
+        created_by,
+        assigned_rider_id,
+        customer_name,
+        customer_phone,
+        delivery_address,
+        item_description,
+        status,
+        created_at
+     FROM deliveries
+     WHERE id = $1
+     FOR UPDATE`,
+    [deliveryId]
+);
 
         if (deliveryResult.rows.length === 0) {
             throw new Error("Delivery not found");
@@ -649,7 +655,11 @@ const createDeliveryConfirmation = async ({
 
         await client.query("COMMIT");
 
-        return confirmationResult.rows[0];
+        return {
+            confirmation: confirmationResult.rows[0],
+            delivery
+        };
+
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;

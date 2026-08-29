@@ -2,12 +2,15 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const { Server } = require("socket.io");
+const http = require("http");
 
 const pool = require("./config/database");
 
 const authRoutes = require("./routes/authRoutes");
 const deliveryRoutes = require("./routes/deliveryRoutes");
 const userRoutes = require("./routes/userRoutes");
+const { initializeSocket } = require("./sockets/socketHandler");
 
 const app = express();
 
@@ -64,15 +67,39 @@ app.get("/api/health/db/users", async (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api/deliveries", deliveryRoutes);
-
 app.use("/api/users", userRoutes);
+
+/*
+ * HTTP server
+ *
+ * Socket.IO attaches to the HTTP server rather than directly
+ * to the Express application.
+ */
+const httpServer = http.createServer(app);
+
+/*
+ * Socket.IO server
+ */
+const io = new Server(httpServer, {
+    cors: {
+        origin: "*"
+    }
+});
+
+/*
+ * Socket connection handling
+ */
+
+initializeSocket(io);
 
 module.exports = app;
 
+module.exports.io = io;
+module.exports.httpServer = httpServer;
+
 if (require.main === module) {
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
         console.log(`Reflex API running on port ${PORT}`);
     });
 }

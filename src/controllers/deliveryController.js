@@ -11,6 +11,14 @@ const {
         createDeliveryConfirmation: createDeliveryConfirmationRecord
 } = require("../services/deliveryService");
 
+const {
+    emitDeliveryCreated,
+    emitDeliveryAssigned,
+    emitDeliveryStatusUpdated,
+    emitDeliveryCancelled,
+    emitDeliveryConfirmed
+} = require("../sockets/deliveryEvents");
+
 const createDelivery = async (req, res) => {
     try {
         const {
@@ -71,6 +79,8 @@ const createDelivery = async (req, res) => {
             deliveryAddress: deliveryAddress.trim(),
             itemDescription: itemDescription.trim()
         });
+
+        emitDeliveryCreated(delivery);
 
         res.status(201).json({
             status: "ok",
@@ -229,6 +239,8 @@ const assignDelivery = async (req, res) => {
             dispatcherId: req.user.userId
         });
 
+        emitDeliveryAssigned(delivery);
+
         res.status(200).json({
             status: "ok",
             message: "Delivery assigned successfully",
@@ -311,6 +323,8 @@ const updateDeliveryStatus = async (req, res) => {
             riderId: req.user.userId,
             newStatus: status.trim()
         });
+
+        emitDeliveryStatusUpdated(delivery);
 
         res.status(200).json({
             status: "ok",
@@ -532,6 +546,8 @@ const cancelDelivery = async (req, res) => {
             role: req.user.role
         });
 
+        emitDeliveryCancelled(delivery);
+
         res.status(200).json({
             status: "ok",
             message: "Delivery cancelled successfully",
@@ -606,17 +622,20 @@ const createDeliveryConfirmation = async (req, res) => {
             });
         }
 
-        const confirmation = await createDeliveryConfirmationRecord({
-            deliveryId: req.params.id,
-            riderId: req.user.userId,
-            method: method.trim()
-        });
+        const result = await createDeliveryConfirmationRecord({
+    deliveryId: req.params.id,
+    riderId: req.user.userId,
+    method: method.trim()
+});
 
-        res.status(201).json({
-            status: "ok",
-            message: "Delivery confirmation recorded successfully",
-            confirmation
-        });
+emitDeliveryConfirmed(result.delivery);
+
+res.status(201).json({
+    status: "ok",
+    message: "Delivery confirmation recorded successfully",
+    confirmation: result.confirmation
+});
+
     } catch (error) {
         console.error(
             "Delivery confirmation failed:",

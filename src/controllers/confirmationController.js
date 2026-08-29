@@ -3,6 +3,8 @@ const {
     getDeliveryConfirmation: fetchDeliveryConfirmation
 } = require("../services/confirmationService");
 
+const { emitDeliveryConfirmed } = require("../sockets/deliveryEvents");
+
 const confirmDelivery = async (req, res) => {
     try {
         if (req.user.role !== "retailer") {
@@ -24,16 +26,19 @@ const confirmDelivery = async (req, res) => {
             });
         }
 
-        const confirmation = await confirmDeliveryRecord({
+        const result = await confirmDeliveryRecord({
             deliveryId: req.params.id,
             retailerId: req.user.userId,
             confirmationCode: confirmationCode.trim()
         });
 
+        emitDeliveryConfirmed(result.delivery);
+
+
         res.status(201).json({
             status: "ok",
             message: "Delivery confirmed successfully",
-            confirmation
+            confirmation: result.confirmation
         });
     } catch (error) {
         console.error("Delivery confirmation failed:", error.message);
