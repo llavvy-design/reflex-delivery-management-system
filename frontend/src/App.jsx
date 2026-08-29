@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import CreateDelivery from "./pages/CreateDelivery";
 import DeliveryDetails from "./pages/DeliveryDetails";
+import EditDelivery from "./pages/EditDelivery";
 
 import Login from "./pages/Login";
 import RetailerDashboard from "./pages/RetailerDashboard";
@@ -47,6 +48,11 @@ const App = () => {
             <Route
                 path="/retailer/deliveries/:id"
                 element={<DeliveryDetails />}
+            />
+
+            <Route
+                path="/retailer/deliveries/:id/edit"
+                element={<EditDelivery />}
             />
 
 

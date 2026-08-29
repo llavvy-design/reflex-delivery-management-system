@@ -347,20 +347,32 @@ const RetailerDashboard = () => {
                                     </div>
 
                                     {(delivery.status === "Pending" ||
-                                        delivery.status === "Assigned") && (
-                                        <div className="delivery-card-actions">
-                                            <button
-                                                type="button"
-                                                className="danger-button"
-                                                onClick={() =>
-                                                    handleCancel(
-                                                        delivery.id
-                                                    )
-                                                }
-                                            >
-                                                Cancel delivery
-                                            </button>
-                                        </div>
+    delivery.status === "Assigned") && (
+    <div className="delivery-card-actions">
+        {delivery.status === "Pending" && (
+            <button
+                type="button"
+                className="secondary-button"
+                onClick={() =>
+                    navigate(
+                        `/retailer/deliveries/${delivery.id}/edit`
+                    )
+                }
+            >
+                Edit
+            </button>
+        )}
+
+        <button
+            type="button"
+            className="danger-button"
+            onClick={() =>
+                handleCancel(delivery.id)
+            }
+        >
+            Cancel delivery
+        </button>
+    </div>
                                     )}
                                 </article>
                             ))}
