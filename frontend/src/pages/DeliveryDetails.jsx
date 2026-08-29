@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import {
     getDelivery,
     getDeliveryHistory,
-    getDeliveryConfirmation
+    getDeliveryConfirmation,
+    confirmDelivery
 } from "../services/deliveryService";
 
 const getStatusClass = (status) => {
@@ -36,8 +37,10 @@ const DeliveryDetails = () => {
     const [delivery, setDelivery] = useState(null);
     const [history, setHistory] = useState([]);
     const [confirmation, setConfirmation] = useState(null);
+const [confirmationCode, setConfirmationCode] = useState("");
+const [confirming, setConfirming] = useState(false);
 
-    const [loading, setLoading] = useState(true);
+const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -75,6 +78,35 @@ const DeliveryDetails = () => {
 
         loadDetails();
     }, [id]);
+
+    const handleConfirmDelivery = async (event) => {
+    event.preventDefault();
+
+    if (!confirmationCode.trim()) {
+        setError("Please enter the confirmation code.");
+        return;
+    }
+
+    try {
+        setError("");
+        setConfirming(true);
+
+        const confirmationData = await confirmDelivery(
+            id,
+            confirmationCode.trim()
+        );
+
+        setConfirmation(confirmationData);
+        setConfirmationCode("");
+    } catch (error) {
+        setError(
+            error.response?.data?.message ||
+            "Unable to confirm delivery."
+        );
+    } finally {
+        setConfirming(false);
+    }
+};
 
     if (loading) {
         return (
@@ -382,30 +414,80 @@ const DeliveryDetails = () => {
     )}
 </div>
 
-                {confirmation && (
-                    <div className="details-section">
-                        <div className="section-heading">
-                            <h2>Delivery confirmation</h2>
-                        </div>
+                {user?.role === "retailer" &&
+    delivery.status === "Delivered" &&
+    !confirmation && (
+        <div className="details-section">
+            <div className="section-heading">
+                <h2>Confirm delivery</h2>
+            </div>
 
-                        <div className="confirmation-card">
-                            <span className="delivery-field-label">
-                                Confirmation method
-                            </span>
+            <div className="confirmation-card">
+                <p>
+                    This delivery has been marked as delivered.
+                    Enter the confirmation code to complete the
+                    delivery.
+                </p>
 
-                            <strong>
-                                {confirmation.method}
-                            </strong>
+                <form onSubmit={handleConfirmDelivery}>
+                    <div className="form-group">
+                        <label htmlFor="confirmationCode">
+                            Confirmation code
+                        </label>
 
-                            <span>
-                                Confirmed on{" "}
-                                {formatDate(
-                                    confirmation.confirmed_at
-                                )}
-                            </span>
-                        </div>
+                        <input
+                            id="confirmationCode"
+                            name="confirmationCode"
+                            type="text"
+                            value={confirmationCode}
+                            onChange={(event) =>
+                                setConfirmationCode(
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Enter confirmation code"
+                            inputMode="numeric"
+                            maxLength={6}
+                            required
+                        />
                     </div>
-                )}
+
+                    <button
+                        type="submit"
+                        className="primary-button"
+                        style={{ width: "auto" }}
+                        disabled={confirming}
+                    >
+                        {confirming
+                            ? "Confirming..."
+                            : "Confirm delivery"}
+                    </button>
+                </form>
+            </div>
+        </div>
+    )}
+
+{confirmation && (
+    <div className="details-section">
+        <div className="section-heading">
+            <h2>Delivery confirmation</h2>
+        </div>
+
+        <div className="confirmation-card">
+            <span className="delivery-field-label">
+                Confirmation method
+            </span>
+
+            <strong>{confirmation.method}</strong>
+
+            <span>
+                Confirmed on{" "}
+                {formatDate(confirmation.confirmed_at)}
+            </span>
+        </div>
+    </div>
+)}
+
             </section>
         </main>
     );

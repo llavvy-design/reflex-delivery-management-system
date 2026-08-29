@@ -28,7 +28,7 @@ const getStatusClass = (status) => {
 
 const RetailerDashboard = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
 
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);

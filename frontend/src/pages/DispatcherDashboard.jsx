@@ -28,7 +28,7 @@ const getStatusClass = (status) => {
 
 const DispatcherDashboard = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
 
     const [deliveries, setDeliveries] = useState([]);
     const [riders, setRiders] = useState([]);
@@ -279,6 +279,27 @@ const DispatcherDashboard = () => {
         }
     };
 
+    const handleStatClick = (filter) => {
+    if (filter === "Unassigned") {
+        setStatusFilter("All");
+        setRiderFilter("All");
+        setUnassignedOnly(true);
+    } else {
+        setStatusFilter(filter);
+        setRiderFilter("All");
+        setUnassignedOnly(false);
+    }
+
+    requestAnimationFrame(() => {
+        document
+            .getElementById("dispatcher-deliveries")
+            ?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+    });
+};
+
     const handleCancel = async (deliveryId) => {
         const confirmed = window.confirm(
             "Are you sure you want to cancel this delivery?"
@@ -365,53 +386,59 @@ const DispatcherDashboard = () => {
                     </div>
 
                     <div className="stats-grid">
-                        <article className="stat-card">
-                            <strong>
-                                {stats?.total ?? 0}
-                            </strong>
+    <button
+        type="button"
+        className="stat-card stat-card-button"
+        onClick={() => handleStatClick("All")}
+    >
+        <strong>{stats?.total ?? 0}</strong>
+        <span>Total deliveries</span>
+    </button>
 
-                            <span>Total deliveries</span>
-                        </article>
+    <button
+        type="button"
+        className="stat-card stat-card-button"
+        onClick={() => handleStatClick("Pending")}
+    >
+        <strong>{stats?.pending ?? 0}</strong>
+        <span>Pending</span>
+    </button>
 
-                        <article className="stat-card">
-                            <strong>
-                                {stats?.pending ?? 0}
-                            </strong>
+    <button
+        type="button"
+        className="stat-card stat-card-button"
+        onClick={() => handleStatClick("Assigned")}
+    >
+        <strong>{stats?.assigned ?? 0}</strong>
+        <span>Assigned</span>
+    </button>
 
-                            <span>Pending</span>
-                        </article>
+    <button
+        type="button"
+        className="stat-card stat-card-button"
+        onClick={() => handleStatClick("Picked Up")}
+    >
+        <strong>{stats?.pickedUp ?? 0}</strong>
+        <span>Picked up</span>
+    </button>
 
-                        <article className="stat-card">
-                            <strong>
-                                {stats?.assigned ?? 0}
-                            </strong>
+    <button
+        type="button"
+        className="stat-card stat-card-button"
+        onClick={() => handleStatClick("Delivered")}
+    >
+        <strong>{stats?.delivered ?? 0}</strong>
+        <span>Delivered</span>
+    </button>
 
-                            <span>Assigned</span>
-                        </article>
-
-                        <article className="stat-card">
-                            <strong>
-                                {stats?.pickedUp ?? 0}
-                            </strong>
-
-                            <span>Picked up</span>
-                        </article>
-
-                        <article className="stat-card">
-                            <strong>
-                                {stats?.delivered ?? 0}
-                            </strong>
-
-                            <span>Delivered</span>
-                        </article>
-
-                        <article className="stat-card">
-                            <strong>
-                                {stats?.unassigned ?? 0}
-                            </strong>
-
-                            <span>Unassigned</span>
-                        </article>
+    <button
+        type="button"
+        className="stat-card stat-card-button"
+        onClick={() => handleStatClick("Unassigned")}
+    >
+        <strong>{stats?.unassigned ?? 0}</strong>
+        <span>Unassigned</span>
+    </button>
                     </div>
                 </section>
 
@@ -478,7 +505,10 @@ const DispatcherDashboard = () => {
                     </div>
                 </section>
 
-                <section className="dashboard-section">
+                <section
+    className="dashboard-section"
+    id="dispatcher-deliveries"
+>
                     <div className="section-heading">
                         <div>
                             <h2>All deliveries</h2>
