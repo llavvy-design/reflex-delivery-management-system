@@ -275,9 +275,16 @@ const RetailerDashboard = () => {
                                                 Delivery
                                             </p>
 
-                                            <h3 className="delivery-card-title">
-                                                #{delivery.id}
-                                            </h3>
+                                            <button
+                                                type="button"
+                                                className="delivery-card-link"
+                                                onClick={() =>
+                                                    navigate(`/retailer/deliveries/${delivery.id}`)
+                                                }
+                                            >
+                                                    #{delivery.id}
+                                            </button>
+
                                         </div>
 
                                         <span
