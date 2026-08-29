@@ -64,3 +64,17 @@ export const getDeliveryHistory = async (deliveryId) => {
 
     return response.data.history;
 };
+
+export const updateDeliveryStatus = async (
+    deliveryId,
+    status
+) => {
+    const response = await api.patch(
+        `/deliveries/${deliveryId}/status`,
+        {
+            status
+        }
+    );
+
+    return response.data.delivery;
+};

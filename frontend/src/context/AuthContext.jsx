@@ -1,5 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../services/api";
+import {
+    connectSocket,
+    disconnectSocket
+} from "../sockets/socket";
 
 const AuthContext = createContext(null);
 
@@ -32,19 +36,23 @@ export const AuthProvider = ({ children }) => {
         const { token, user } = response.data;
 
         localStorage.setItem("reflex_token", token);
-        localStorage.setItem("reflex_user", JSON.stringify(user));
+localStorage.setItem("reflex_user", JSON.stringify(user));
 
-        setUser(user);
+setUser(user);
 
-        return response.data;
+connectSocket();
+
+return response.data;
     };
 
     const logout = () => {
-        localStorage.removeItem("reflex_token");
-        localStorage.removeItem("reflex_user");
+    disconnectSocket();
 
-        setUser(null);
-    };
+    localStorage.removeItem("reflex_token");
+    localStorage.removeItem("reflex_user");
+
+    setUser(null);
+};
 
     const value = {
         user,

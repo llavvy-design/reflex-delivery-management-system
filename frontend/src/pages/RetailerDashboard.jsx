@@ -5,6 +5,10 @@ import {
     getDeliveries,
     cancelDelivery
 } from "../services/deliveryService";
+import socket, {
+    connectSocket,
+    disconnectSocket
+} from "../sockets/socket";
 
 const getInitials = (name = "") => {
     return name
@@ -53,6 +57,63 @@ const RetailerDashboard = () => {
         loadDeliveries();
     }, []);
 
+    useEffect(() => {
+    const handleDeliveryAssigned = ({ delivery }) => {
+        console.log(
+            "REAL-TIME delivery:assigned received:",
+            delivery
+        );
+
+        setDeliveries((currentDeliveries) =>
+            currentDeliveries.map((currentDelivery) =>
+                currentDelivery.id === delivery.id
+                    ? delivery
+                    : currentDelivery
+            )
+        );
+    };
+
+    const handleDeliveryStatusUpdated = ({ delivery }) => {
+        console.log(
+            "REAL-TIME delivery:status_updated received:",
+            delivery
+        );
+
+        setDeliveries((currentDeliveries) =>
+            currentDeliveries.map((currentDelivery) =>
+                currentDelivery.id === delivery.id
+                    ? delivery
+                    : currentDelivery
+            )
+        );
+    };
+
+    socket.on(
+        "delivery:assigned",
+        handleDeliveryAssigned
+    );
+
+    socket.on(
+        "delivery:status_updated",
+        handleDeliveryStatusUpdated
+    );
+
+    connectSocket();
+
+    return () => {
+        socket.off(
+            "delivery:assigned",
+            handleDeliveryAssigned
+        );
+
+        socket.off(
+            "delivery:status_updated",
+            handleDeliveryStatusUpdated
+        );
+
+        disconnectSocket();
+    };
+}, []);
 
     const filteredDeliveries = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
