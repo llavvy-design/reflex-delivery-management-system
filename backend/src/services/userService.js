@@ -55,7 +55,25 @@ const updateRiderAvailability = async ({
     return result.rows[0] || null;
 };
 
+const getCurrentRider = async (riderId) => {
+    const result = await pool.query(
+        `SELECT
+            id,
+            name,
+            email,
+            phone,
+            is_available
+         FROM users
+         WHERE id = $1
+           AND role = 'rider'`,
+        [riderId]
+    );
+
+    return result.rows[0] || null;
+};
+
 module.exports = {
     getRiders,
-    updateRiderAvailability
+    updateRiderAvailability,
+    getCurrentRider
 };

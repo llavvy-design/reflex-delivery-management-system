@@ -463,6 +463,40 @@
     font-weight: 600;
 }
 
+.availability-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background: var(--reflex-surface);
+    border: 1px solid var(--reflex-border);
+    border-radius: var(--reflex-radius-md);
+    box-shadow: var(--reflex-shadow-sm);
+}
+
+.availability-info {
+    min-width: 0;
+}
+
+.availability-info p {
+    margin: 10px 0 0;
+    color: var(--reflex-text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .availability-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .availability-card button {
+        width: 100% !important;
+    }
+}
+
 /* Deliveries */
 
 .delivery-list {

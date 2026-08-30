@@ -1,6 +1,7 @@
 const {
     getRiders: fetchRiders,
-    updateRiderAvailability: changeRiderAvailability
+    updateRiderAvailability: changeRiderAvailability,
+    getCurrentRider: fetchCurrentRider
 } = require("../services/userService");
 
 const getRiders = async (req, res) => {
@@ -82,8 +83,50 @@ const updateRiderAvailability = async (req, res) => {
         });
     }
 };
+ const getCurrentRider = async (req, res) => {
+    try {
+        if (req.user.role !== "rider") {
+            return res.status(403).json({
+                status: "error",
+                message: "Only riders can view their availability"
+            });
+        }
+
+        const rider = await fetchCurrentRider(req.user.userId);
+
+        if (!rider) {
+            return res.status(404).json({
+                status: "error",
+                message: "Rider not found"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            message: "Rider retrieved successfully",
+            rider: {
+                id: rider.id,
+                name: rider.name,
+                email: rider.email,
+                phone: rider.phone,
+                isAvailable: rider.is_available
+            }
+        });
+    } catch (error) {
+        console.error(
+            "Current rider retrieval failed:",
+            error.message
+        );
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to retrieve rider"
+        });
+    }
+};
 
 module.exports = {
     getRiders,
-    updateRiderAvailability
+    updateRiderAvailability,
+    getCurrentRider
 };

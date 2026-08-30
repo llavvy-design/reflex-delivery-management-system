@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
     getDeliveries,
-    updateDeliveryStatus
+    updateDeliveryStatus,
+    getCurrentRider,
+    updateRiderAvailability
 } from "../services/deliveryService";
 import socket from "../sockets/socket";
 import Sidebar from "../components/Sidebar";
@@ -25,12 +27,15 @@ const getStatusClass = (status) => {
 
 const RiderDashboard = () => {
     const navigate = useNavigate();
-    const { user} = useAuth();
+    const { user } = useAuth();
 
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState(null);
     const [error, setError] = useState("");
+    const [isAvailable, setIsAvailable] = useState(null);
+const [availabilityUpdating, setAvailabilityUpdating] =
+    useState(false);
 
     const loadDeliveries = async () => {
         try {
@@ -49,9 +54,45 @@ const RiderDashboard = () => {
         }
     };
 
+    const loadRiderAvailability = async () => {
+    try {
+        const rider = await getCurrentRider();
+
+        setIsAvailable(rider.isAvailable);
+    } catch (error) {
+        setError(
+            error.response?.data?.message ||
+            "Unable to load your availability."
+        );
+    }
+};
+
+    const handleAvailabilityChange = async () => {
+    const nextAvailability = !isAvailable;
+
+    try {
+        setError("");
+        setAvailabilityUpdating(true);
+
+        const rider = await updateRiderAvailability(
+            nextAvailability
+        );
+
+        setIsAvailable(rider.isAvailable);
+    } catch (error) {
+        setError(
+            error.response?.data?.message ||
+            "Unable to update your availability."
+        );
+    } finally {
+        setAvailabilityUpdating(false);
+    }
+};
+
     useEffect(() => {
-        loadDeliveries();
-    }, []);
+    loadDeliveries();
+    loadRiderAvailability();
+}, []);
 
     useEffect(() => {
         const handleDeliveryAssigned = ({ delivery }) => {
@@ -246,6 +287,59 @@ const RiderDashboard = () => {
                         </article>
                     </div>
                 </section>
+
+                <section className="dashboard-section">
+    <div className="section-heading">
+        <div>
+            <h2>Your availability</h2>
+        </div>
+    </div>
+
+    <div className="availability-card">
+        <div className="availability-info">
+            <span
+                className={`status-badge ${
+                    isAvailable
+                        ? "status-delivered"
+                        : "status-cancelled"
+                }`}
+            >
+                {isAvailable === null
+                    ? "Loading..."
+                    : isAvailable
+                    ? "Available"
+                    : "Unavailable"}
+            </span>
+
+            <p>
+                {isAvailable
+                    ? "You are available to receive new delivery assignments."
+                    : "You are currently unavailable and won't receive new assignments."}
+            </p>
+        </div>
+
+        <button
+            type="button"
+            className={
+                isAvailable
+                    ? "danger-button"
+                    : "primary-button"
+            }
+            style={{ width: "auto" }}
+            disabled={
+                isAvailable === null ||
+                availabilityUpdating
+            }
+            onClick={handleAvailabilityChange}
+        >
+            {availabilityUpdating
+                ? "Updating..."
+                : isAvailable
+                ? "Set unavailable"
+                : "Set available"}
+        </button>
+    </div>
+</section>
 
                 <section className="dashboard-section">
                     <div className="section-heading">

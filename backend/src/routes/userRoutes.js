@@ -4,10 +4,17 @@ const { authenticateToken } = require("../middleware/authMiddleware");
 
 const {
     getRiders,
-    updateRiderAvailability
+    updateRiderAvailability,
+    getCurrentRider
 } = require("../controllers/userController");
 
 const router = express.Router();
+
+router.get(
+    "/riders/me",
+    authenticateToken,
+    getCurrentRider
+);
 
 router.get(
     "/riders",

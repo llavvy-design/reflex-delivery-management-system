@@ -104,3 +104,20 @@ export const assignDelivery = async (
 
     return response.data.delivery;
 };
+
+export const updateRiderAvailability = async (isAvailable) => {
+    const response = await api.patch(
+        "/users/riders/me/availability",
+        {
+            isAvailable
+        }
+    );
+
+    return response.data.rider;
+};
+
+export const getCurrentRider = async () => {
+    const response = await api.get("/users/riders/me");
+
+    return response.data.rider;
+};
