@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import CreateDelivery from "./pages/CreateDelivery";
 import DeliveryDetails from "./pages/DeliveryDetails";
@@ -45,47 +46,53 @@ const App = () => {
             />
 
             {/* Retailer */}
-<Route
-    path="/retailer"
-    element={<RetailerDashboard />}
-/>
+<Route element={<ProtectedRoute allowedRoles={["retailer"]} />}>
+    <Route
+        path="/retailer"
+        element={<RetailerDashboard />}
+    />
 
-<Route
-    path="/retailer/deliveries/new"
-    element={<CreateDelivery />}
-/>
+    <Route
+        path="/retailer/deliveries/new"
+        element={<CreateDelivery />}
+    />
 
-<Route
-    path="/retailer/deliveries/:id"
-    element={<DeliveryDetails />}
-/>
+    <Route
+        path="/retailer/deliveries/:id"
+        element={<DeliveryDetails />}
+    />
 
-<Route
-    path="/retailer/deliveries/:id/edit"
-    element={<EditDelivery />}
-/>
+    <Route
+        path="/retailer/deliveries/:id/edit"
+        element={<EditDelivery />}
+    />
+</Route>
 
 {/* Rider */}
-<Route
-    path="/rider"
-    element={<RiderDashboard />}
-/>
+<Route element={<ProtectedRoute allowedRoles={["rider"]} />}>
+    <Route
+        path="/rider"
+        element={<RiderDashboard />}
+    />
 
-<Route
-    path="/rider/deliveries/:id"
-    element={<DeliveryDetails />}
-/>
+    <Route
+        path="/rider/deliveries/:id"
+        element={<DeliveryDetails />}
+    />
+</Route>
 
 {/* Dispatcher */}
-<Route
-    path="/dispatcher"
-    element={<DispatcherDashboard />}
-/>
+<Route element={<ProtectedRoute allowedRoles={["dispatcher"]} />}>
+    <Route
+        path="/dispatcher"
+        element={<DispatcherDashboard />}
+    />
 
-<Route
-    path="/dispatcher/deliveries/:id"
-    element={<DeliveryDetails />}
-/>
+    <Route
+        path="/dispatcher/deliveries/:id"
+        element={<DeliveryDetails />}
+    />
+</Route>
 
             {/* Home / role redirect */}
             <Route

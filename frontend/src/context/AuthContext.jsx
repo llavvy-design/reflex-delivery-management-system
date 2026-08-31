@@ -19,8 +19,8 @@ export const AuthProvider = ({ children }) => {
             try {
                 setUser(JSON.parse(storedUser));
             } catch {
-                localStorage.removeItem("reflex_token");
-                localStorage.removeItem("reflex_user");
+                sessionStorage.removeItem("reflex_token");
+                sessionStorage.removeItem("reflex_user");
             }
         }
 
