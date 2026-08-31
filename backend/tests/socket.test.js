@@ -446,4 +446,99 @@ describe("Socket.IO authentication", () => {
         assignedRiderSocket.disconnect();
         otherRiderSocket.disconnect();
     });
+
+        test("delivery:confirmed event does not expose confirmation_code", async () => {
+        const port = httpServer.address().port;
+
+        const socket = ioClient(
+            `http://localhost:${port}`,
+            {
+                auth: {
+                    token: retailerToken
+                },
+                transports: ["websocket"]
+            }
+        );
+
+        await new Promise((resolve, reject) => {
+            socket.on("connect", resolve);
+            socket.on("connect_error", reject);
+        });
+
+        const confirmationEvent = new Promise((resolve, reject) => {
+            socket.once("delivery:confirmed", resolve);
+
+            setTimeout(() => {
+                reject(
+                    new Error(
+                        "Timed out waiting for delivery:confirmed event"
+                    )
+                );
+            }, 5000);
+        });
+
+        const createResponse = await request(app)
+            .post("/api/deliveries")
+            .set("Authorization", `Bearer ${retailerToken}`)
+            .send({
+                customerName: "Socket Confirmation Customer",
+                customerPhone: "0712345735",
+                deliveryAddress: "Mombasa CBD",
+                itemDescription: "Socket Confirmation Package"
+            });
+
+        expect(createResponse.statusCode).toBe(201);
+
+        const deliveryId = createResponse.body.delivery.id;
+        const confirmationCode =
+            createResponse.body.delivery.confirmation_code;
+
+        const assignResponse = await request(app)
+            .post(`/api/deliveries/${deliveryId}/assign`)
+            .set("Authorization", `Bearer ${dispatcherToken}`)
+            .send({
+                riderId: 4
+            });
+
+        expect(assignResponse.statusCode).toBe(200);
+
+        const pickedUpResponse = await request(app)
+            .patch(`/api/deliveries/${deliveryId}/status`)
+            .set("Authorization", `Bearer ${riderToken}`)
+            .send({
+                status: "Picked Up"
+            });
+
+        expect(pickedUpResponse.statusCode).toBe(200);
+
+        const deliveredResponse = await request(app)
+            .patch(`/api/deliveries/${deliveryId}/status`)
+            .set("Authorization", `Bearer ${riderToken}`)
+            .send({
+                status: "Delivered"
+            });
+
+        expect(deliveredResponse.statusCode).toBe(200);
+
+        const confirmResponse = await request(app)
+            .post(`/api/deliveries/${deliveryId}/confirm`)
+            .set("Authorization", `Bearer ${retailerToken}`)
+            .send({
+                confirmationCode
+            });
+
+        expect(confirmResponse.statusCode).toBe(201);
+
+        const payload = await confirmationEvent;
+
+        expect(payload.delivery).toBeDefined();
+        expect(payload.delivery.id).toBe(deliveryId);
+        expect(payload.delivery.status).toBe("Delivered");
+
+        expect(
+            payload.delivery
+        ).not.toHaveProperty("confirmation_code");
+
+        socket.disconnect();
+    });
 });
