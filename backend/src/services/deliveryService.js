@@ -572,102 +572,6 @@ const cancelDelivery = async ({
     }
 };
 
-const createDeliveryConfirmation = async ({
-    deliveryId,
-    riderId,
-    method
-}) => {
-    const client = await pool.connect();
-
-    try {
-        await client.query("BEGIN");
-
-        const deliveryResult = await client.query(
-        `SELECT
-        id,
-        created_by,
-        assigned_rider_id,
-        customer_name,
-        customer_phone,
-        delivery_address,
-        item_description,
-        status,
-        created_at
-     FROM deliveries
-     WHERE id = $1
-     FOR UPDATE`,
-    [deliveryId]
-);
-
-        if (deliveryResult.rows.length === 0) {
-            throw new Error("Delivery not found");
-        }
-
-        const delivery = deliveryResult.rows[0];
-
-        if (delivery.assigned_rider_id !== riderId) {
-            throw new Error("You are not assigned to this delivery");
-        }
-
-        if (delivery.status !== "Delivered") {
-            throw new Error(
-                "Delivery must be Delivered before confirmation"
-            );
-        }
-
-        const existingConfirmation = await client.query(
-            `SELECT
-                id,
-                delivery_id,
-                confirmed_by,
-                method,
-                confirmed_at
-             FROM confirmations
-             WHERE delivery_id = $1`,
-            [deliveryId]
-        );
-
-        if (existingConfirmation.rows.length > 0) {
-            throw new Error("Delivery has already been confirmed");
-        }
-
-        const confirmationResult = await client.query(
-            `INSERT INTO confirmations
-                (
-                    delivery_id,
-                    confirmed_by,
-                    method
-                )
-             VALUES
-                ($1, $2, $3)
-             RETURNING
-                id,
-                delivery_id,
-                confirmed_by,
-                method,
-                confirmed_at`,
-            [
-                deliveryId,
-                riderId,
-                method
-            ]
-        );
-
-        await client.query("COMMIT");
-
-        return {
-            confirmation: confirmationResult.rows[0],
-            delivery
-        };
-
-    } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
-    } finally {
-        client.release();
-    }
-};
-
 module.exports = {
     createDelivery,
     getDeliveries,
@@ -677,6 +581,5 @@ module.exports = {
     getDeliveryHistory,
     getDeliveryStats,
     updateDelivery,
-    cancelDelivery,
-    createDeliveryConfirmation
+    cancelDelivery
 };
