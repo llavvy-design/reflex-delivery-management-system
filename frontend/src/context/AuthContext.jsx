@@ -11,20 +11,41 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const token = sessionStorage.getItem("reflex_token");
-        const storedUser = sessionStorage.getItem("reflex_user");
+        useEffect(() => {
+        const restoreSession = async () => {
+            const token = sessionStorage.getItem("reflex_token");
 
-        if (token && storedUser) {
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
             try {
-                setUser(JSON.parse(storedUser));
+                const response = await api.get("/auth/me");
+
+                const authenticatedUser = response.data.user;
+
+                sessionStorage.setItem(
+                    "reflex_user",
+                    JSON.stringify(authenticatedUser)
+                );
+
+                setUser(authenticatedUser);
+
+                connectSocket();
             } catch {
+                disconnectSocket();
+
                 sessionStorage.removeItem("reflex_token");
                 sessionStorage.removeItem("reflex_user");
-            }
-        }
 
-        setLoading(false);
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        restoreSession();
     }, []);
 
     const login = async (email, password) => {

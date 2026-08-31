@@ -1,6 +1,7 @@
 const {
     registerUser: createUser,
-    loginUser: authenticateUser
+    loginUser: authenticateUser,
+    getCurrentUser: fetchCurrentUser
 } = require("../services/authService");
 
 const registerUser = async (req, res) => {
@@ -104,12 +105,33 @@ const loginUser = async (req, res) => {
 
 };
 
-const getCurrentUser = (req, res) => {
-    res.status(200).json({
-        status: "ok",
-        message: "Authentication verified",
-        user: req.user
-    });
+const getCurrentUser = async (req, res) => {
+    try {
+        const user = await fetchCurrentUser(req.user.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                status: "error",
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            message: "Authentication verified",
+            user
+        });
+    } catch (error) {
+        console.error(
+            "Current user retrieval failed:",
+            error.message
+        );
+
+        res.status(500).json({
+            status: "error",
+            message: "Failed to verify authentication"
+        });
+    }
 };
 
 module.exports = {

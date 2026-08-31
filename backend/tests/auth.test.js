@@ -39,6 +39,60 @@ describe("Authentication protection", () => {
         });
     });
 
+        test("authenticated user can retrieve their full current user profile", async () => {
+        const loginResponse = await request(app)
+            .post("/api/auth/login")
+            .send({
+                email: "test@example.com",
+                password: "TestPassword123"
+            });
+
+        expect(loginResponse.statusCode).toBe(200);
+        expect(loginResponse.body.token).toBeDefined();
+
+        const response = await request(app)
+            .get("/api/auth/me")
+            .set(
+                "Authorization",
+                `Bearer ${loginResponse.body.token}`
+            );
+
+        expect(response.statusCode).toBe(200);
+
+        expect(response.body).toMatchObject({
+            status: "ok",
+            message: "Authentication verified"
+        });
+
+        expect(response.body.user).toMatchObject({
+            id: 1,
+            name: "Test Retailer",
+            email: "test@example.com",
+            phone: "0712345678",
+            role: "retailer"
+        });
+
+        expect(response.body.user).not.toHaveProperty(
+            "password"
+        );
+
+        expect(response.body.user).not.toHaveProperty(
+            "password_hash"
+        );
+
+        expect(response.body.user).not.toHaveProperty(
+            "userId"
+        );
+
+        expect(response.body.user).not.toHaveProperty(
+            "iat"
+        );
+
+        expect(response.body.user).not.toHaveProperty(
+            "exp"
+        );
+    });
+
     describe("User registration", () => {
     test("registration should reject missing name", async () => {
         const response = await request(app)

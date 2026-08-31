@@ -70,7 +70,24 @@ return {
 };
 };
 
+const getCurrentUser = async (userId) => {
+    const result = await pool.query(
+        `SELECT
+            id,
+            name,
+            email,
+            phone,
+            role
+         FROM users
+         WHERE id = $1`,
+        [userId]
+    );
+
+    return result.rows[0] || null;
+};
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    getCurrentUser
 };
