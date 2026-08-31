@@ -32,8 +32,9 @@ const confirmDelivery = async (req, res) => {
             confirmationCode: confirmationCode.trim()
         });
 
-        emitDeliveryConfirmed(result.delivery);
+        const { confirmation_code, ...safeDelivery } = result.delivery;
 
+        emitDeliveryConfirmed(safeDelivery);
 
         res.status(201).json({
             status: "ok",
