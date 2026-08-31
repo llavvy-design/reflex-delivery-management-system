@@ -14,4 +14,36 @@ describe("Health API", () => {
             message: "Reflex API is running"
         });
     });
+
+    test("API should reject malformed JSON", async () => {
+        const response = await request(app)
+            .post("/api/deliveries")
+            .set("Content-Type", "application/json")
+            .send('{"invalidJson":');
+
+        expect(response.statusCode).toBe(400);
+
+        expect(response.body).toEqual({
+            status: "error",
+            message: "Invalid JSON payload"
+        });
+    });
+
+    test("API should reject an oversized JSON request body", async () => {
+        const largePayload = {
+            name: "A".repeat(1024 * 1024 + 100)
+        };
+
+        const response = await request(app)
+            .post("/api/deliveries")
+            .set("Content-Type", "application/json")
+            .send(JSON.stringify(largePayload));
+
+        expect(response.statusCode).toBe(413);
+
+        expect(response.body).toEqual({
+            status: "error",
+            message: "Request body is too large"
+        });
+    });
 });
