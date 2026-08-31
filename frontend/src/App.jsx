@@ -45,36 +45,46 @@ const App = () => {
             />
 
             {/* Retailer */}
-            <Route
-                path="/retailer"
-                element={<RetailerDashboard />}
-            />
+<Route
+    path="/retailer"
+    element={<RetailerDashboard />}
+/>
 
-            <Route
-                path="/retailer/deliveries/new"
-                element={<CreateDelivery />}
-            />
+<Route
+    path="/retailer/deliveries/new"
+    element={<CreateDelivery />}
+/>
 
-            <Route
-                path="/retailer/deliveries/:id"
-                element={<DeliveryDetails />}
-            />
+<Route
+    path="/retailer/deliveries/:id"
+    element={<DeliveryDetails />}
+/>
 
-            <Route
-                path="/retailer/deliveries/:id/edit"
-                element={<EditDelivery />}
-            />
+<Route
+    path="/retailer/deliveries/:id/edit"
+    element={<EditDelivery />}
+/>
 
-            {/* Rider */}
-            <Route
-                path="/rider"
-                element={<RiderDashboard />}
-            />
+{/* Rider */}
+<Route
+    path="/rider"
+    element={<RiderDashboard />}
+/>
 
-            {/* Dispatcher */}
+<Route
+    path="/rider/deliveries/:id"
+    element={<DeliveryDetails />}
+/>
+
+{/* Dispatcher */}
 <Route
     path="/dispatcher"
     element={<DispatcherDashboard />}
+/>
+
+<Route
+    path="/dispatcher/deliveries/:id"
+    element={<DeliveryDetails />}
 />
 
             {/* Home / role redirect */}

@@ -650,8 +650,8 @@ const DispatcherDashboard = () => {
                                                     type="button"
                                                     className="delivery-card-link"
                                                     onClick={() =>
-                                                        navigate(
-                                                            `/retailer/deliveries/${delivery.id}`
+                                                       navigate(
+                                                           `/dispatcher/deliveries/${delivery.id}`
                                                         )
                                                     }
                                                 >

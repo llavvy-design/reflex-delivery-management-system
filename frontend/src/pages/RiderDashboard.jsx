@@ -312,10 +312,12 @@ const [availabilityUpdating, setAvailabilityUpdating] =
             </span>
 
             <p>
-                {isAvailable
-                    ? "You are available to receive new delivery assignments."
-                    : "You are currently unavailable and won't receive new assignments."}
-            </p>
+    {isAvailable === null
+        ? "Checking your availability..."
+        : isAvailable
+        ? "You are available to receive new delivery assignments."
+        : "You are currently unavailable and won't receive new assignments."}
+</p>
         </div>
 
         <button
