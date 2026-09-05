@@ -1,6 +1,6 @@
 # Reflex Delivery Management System
 
-> A full-stack delivery management platform for coordinating retailers, dispatchers, and riders through a secure, role-based workflow with real-time delivery updates.
+> A full-stack delivery management platform for coordinating retailers, dispatchers and riders through a secure, role-based workflow with real-time delivery updates.
 
 ---
 
